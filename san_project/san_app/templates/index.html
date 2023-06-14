@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SAN Alias Page</title>
+</head>
+<body>
+    <h1>Aliases</h1>
+    <button onclick="location.href='{% url 'add_alias' %}'" type="button">
+        Add Alias
+    </button>
+    <table>
+        {% for alias in aliases %}
+        <tr>
+            <td>{{ alias.alias_name }}</td>
+            <td>{{ alias.WWPN }}</td>
+            <td>{{ alias.use }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
