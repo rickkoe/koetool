@@ -29,6 +29,8 @@ def index(request):
                 SANAlias.objects.filter(id=row['id']).update(alias_name=row['alias_name'], WWPN=row['WWPN'], use=row['use'])
             else:  # If there's no ID, create a new record
                 SANAlias.objects.create(alias_name=row['alias_name'], WWPN=row['WWPN'], use=row['use'])
+                
+        SANAlias.objects.save()
 
         # Find and delete records that are not in the submitted data
         # We only check the IDs of the rows that had an ID (i.e., not the new rows)
