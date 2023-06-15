@@ -15,6 +15,6 @@
 <script src="{% static 'san_app/js/aliases.js' %}"></script>
 
 <script>
-    const data = {{ aliases|safe }};
+    var data = {{ aliases|safe }};
 </script>
 {% endblock %}
