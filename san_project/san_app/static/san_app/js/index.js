@@ -14,7 +14,7 @@ $(document).ready(function() {
         rowHeaders: true,
         colHeaders: ["ID", "Alias Name", "WWPN", "Use"],
         contextMenu: ['row_above', 'row_below', 'remove_row', '---------', 'undo', 'redo'],  // Custom context menu options
-        // minSpareRows: 1,  // Always leave one spare row at the end
+        minSpareRows: 1,  // Always leave one spare row at the end
         // Disable ID column
         cells: function(row, col, prop) {
             if (col === 0) {
