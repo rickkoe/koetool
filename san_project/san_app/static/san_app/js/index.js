@@ -1,3 +1,7 @@
+// import Handsontable from 'handsontable';
+// import 'handsontable/plugins/filters/filters';
+
+
 $.ajaxSetup({
   headers: { "X-CSRFToken": getCookie("csrftoken") }
 });
@@ -6,7 +10,8 @@ var aliasTable;
 
 $(document).ready(function() {
     var container = document.getElementById('aliasTable');
-    aliasTable = new Handsontable(container, {
+
+    var aliasTable = new Handsontable(container, {
         licenseKey: 'non-commercial-and-evaluation',
         data: data,
         minRows: 5,
@@ -15,6 +20,8 @@ $(document).ready(function() {
         colHeaders: ["ID", "Alias Name", "WWPN", "Use"],
         contextMenu: ['row_above', 'row_below', 'remove_row', '---------', 'undo', 'redo'],  // Custom context menu options
         minSpareRows: 1,  // Always leave one spare row at the end
+        filters: true,
+        dropdownMenu: true,
         // Disable ID column
         cells: function(row, col, prop) {
             if (col === 0) {
