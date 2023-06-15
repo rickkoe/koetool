@@ -13,6 +13,9 @@
     </header>
 
     <nav>
+        <button onclick="location.href='{% url 'index' %}'" type="button">
+            Home
+        </button>
         <button onclick="location.href='{% url 'add_alias' %}'" type="button">
             Add Alias
         </button>
@@ -34,7 +37,6 @@
     <!-- JavaScript files-->
     <script src="{% static 'san_app/jquery/jquery.min.js' %}"></script>
     <script src="{% static 'san_app/handsontable/handsontable.full.min.js' %}"></script>
-    <script src="{% static 'san_app/js/bulk_add_alias.js' %}"></script>
 
     {% block extra_js %}
     <!-- Page specific scripts will be added here -->

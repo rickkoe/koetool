@@ -1,14 +1,12 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <title>Add SAN Alias</title>
-</head>
-<body>
+{% extends "base_generic.html" %}
+
+    {% block content %}
     <h1>Add SAN Alias</h1>
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
         <button type="submit">Add Alias</button>
     </form>
-</body>
-</html>
+    {% endblock %}
+

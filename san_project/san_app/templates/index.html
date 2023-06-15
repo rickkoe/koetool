@@ -1,14 +1,20 @@
 <!DOCTYPE html>
 {% extends "base_generic.html" %}
+{% load static %}
 {% block content %}
-<h1>Aliases</h1>
-    <table>
-        {% for alias in aliases %}
-        <tr>
-            <td>{{ alias.alias_name }}</td>
-            <td>{{ alias.WWPN }}</td>
-            <td>{{ alias.use }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+<h1>Alias List</h1>
+
+<div id="aliasTable"></div>
+
+<button id="submit-data">Save Changes</button>
+
+
+{% endblock %}
+{% block extra_js %}
+
+<script src="{% static 'san_app/js/index.js' %}"></script>
+
+<script>
+    const data = {{ aliases|safe }};
+</script>
 {% endblock %}

@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 {% extends "base_generic.html" %}
+{% load static %}
+
 {% block content %}
     <h1>Bulk Add Aliases</h1>
     <div id="hot"></div>
@@ -8,5 +10,10 @@
     </form>
     
     <button id="submit-data">Submit</button>
+{% endblock %}
+
+
+{% block extra_js %}
+<script src="{% static 'san_app/js/bulk_add_alias.js' %}"></script>
 {% endblock %}
 
