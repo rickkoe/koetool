@@ -7,8 +7,8 @@ class SANAlias(models.Model):
         ('both', 'Both'),
     ]
     
-    alias_name = models.CharField(max_length=100)
-    WWPN = models.CharField(max_length=23)
+    alias_name = models.CharField(max_length=100, unique=True)
+    WWPN = models.CharField(max_length=23, unique=True)
     use = models.CharField(max_length=6, choices=USE_CHOICES, default='init')
 
     def __str__(self):

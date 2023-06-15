@@ -1,13 +1,7 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <title>SAN Alias Page</title>
-</head>
-<body>
-    <h1>Aliases</h1>
-    <button onclick="location.href='{% url 'add_alias' %}'" type="button">
-        Add Alias
-    </button>
+{% extends "base_generic.html" %}
+{% block content %}
+<h1>Aliases</h1>
     <table>
         {% for alias in aliases %}
         <tr>
@@ -17,5 +11,4 @@
         </tr>
         {% endfor %}
     </table>
-</body>
-</html>
+{% endblock %}

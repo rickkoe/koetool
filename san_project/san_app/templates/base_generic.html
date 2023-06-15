@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}</title>
+    <link href="{% static 'san_app/handsontable/handsontable.full.min.css' %}" rel="stylesheet">
+</head>
+<body>
+    <header>
+        SAN APP
+    </header>
+
+    <nav>
+        <button onclick="location.href='{% url 'add_alias' %}'" type="button">
+            Add Alias
+        </button>
+        <button onclick="location.href='{% url 'bulk_add_alias' %}'" type="button">
+            Bulk Add Alias
+        </button>
+    </nav>
+
+    <main>
+        {% block content %}
+        <!-- This space will be filled with page-specific content -->
+        {% endblock %}
+    </main>
+
+    <footer>
+        <!-- Site footer goes here -->
+    </footer>
+
+    <!-- JavaScript files-->
+    <script src="{% static 'san_app/jquery/jquery.min.js' %}"></script>
+    <script src="{% static 'san_app/handsontable/handsontable.full.min.js' %}"></script>
+    <script src="{% static 'san_app/js/bulk_add_alias.js' %}"></script>
+
+    {% block extra_js %}
+    <!-- Page specific scripts will be added here -->
+    {% endblock %}
+</body>
+</html>

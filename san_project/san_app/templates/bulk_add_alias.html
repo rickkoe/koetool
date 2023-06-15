@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+{% extends "base_generic.html" %}
+{% block content %}
+    <h1>Bulk Add Aliases</h1>
+    <div id="hot"></div>
+    <form method="post">
+        {% csrf_token %}
+    </form>
+    
+    <button id="submit-data">Submit</button>
+{% endblock %}
+

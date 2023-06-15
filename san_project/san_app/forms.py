@@ -29,3 +29,6 @@ class SANAliasForm(forms.ModelForm):
             wwpn = ':'.join(wwpn[i:i+2] for i in range(0, len(wwpn), 2))
 
         return wwpn
+
+class BulkUploadForm(forms.Form):
+    data = forms.CharField(widget=forms.Textarea)
