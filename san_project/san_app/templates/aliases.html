@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+{% extends "base_generic.html" %}
+{% load static %}
+{% block content %}
+<h1>Alias List</h1>
+
+<div id="aliasTable"></div>
+
+<button id="submit-data">Save Changes</button>
+
+
+{% endblock %}
+{% block extra_js %}
+
+<script src="{% static 'san_app/js/aliases.js' %}"></script>
+
+<script>
+    const data = {{ aliases|safe }};
+</script>
+{% endblock %}
