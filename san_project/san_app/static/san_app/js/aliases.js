@@ -23,9 +23,9 @@ $(document).ready(function() {
         licenseKey: 'non-commercial-and-evaluation',
         data: data,
         minRows: 5,
-        minCols: 4,
+        minCols: 5,
         rowHeaders: true,
-        colHeaders: ["ID", "Alias Name", "WWPN", "Use"],
+        colHeaders: ["ID", "Alias Name", "WWPN", "Use", "Fabric"],
         contextMenu: ['row_above', 'row_below', 'remove_row', '---------', 'undo', 'redo'],  // Custom context menu options
         minSpareRows: 1,  // Always leave one spare row at the end
         // Disable ID column
@@ -53,12 +53,13 @@ $(document).ready(function() {
    
   $('#submit-data').click(function() {
     var data = aliasTable.getData().map(function(row) {
-        if (row[1] || row[2] || row[3]) {  // Only send rows that have at least one of these fields filled
+        if (row[1] || row[2] || row[3] || row[4]) {  // Only send rows that have at least one of these fields filled
             return {
                 id: row[0],
                 alias_name: row[1],
                 WWPN: row[2],
-                use: row[3]
+                use: row[3],
+                fabric_id: row[4]
             };
         }
     });
