@@ -23,8 +23,8 @@ $(document).ready(function() {
         licenseKey: 'non-commercial-and-evaluation',
         data: data,
         minRows: 5,
-        minCols: 3,
-        rowHeaders: false,
+        minCols: 4,
+        rowHeaders: true,
         colHeaders: ["ID", "Alias Name", "WWPN", "Use"],
         contextMenu: ['row_above', 'row_below', 'remove_row', '---------', 'undo', 'redo'],  // Custom context menu options
         minSpareRows: 1,  // Always leave one spare row at the end

@@ -1,0 +1,7 @@
+san_project/db.sqlite3
+san_project/san_app/__pycache__/
+san_project/san_app/migrations/*
+__pycache__/
+san_project/__pycache__/
+
+san_project/san_app/__pycache__/admin.cpython-310.pyc
