@@ -12,7 +12,7 @@
 {% endblock %}
 {% block extra_js %}
 
-<script src="{% static 'san_app/js/aliases.js' %}"></script>
+<script src="{% static 'san_app/js/aliases.js' %}" type="module"></script>
 
 <script>
     var data = {{ aliases|safe }};

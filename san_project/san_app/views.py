@@ -1,8 +1,8 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .forms import SANAliasForm, BulkUploadForm
 from rest_framework import viewsets
 from .serializers import SANAliasSerializer
-from .models import SANAlias
+from .models import SANAlias, Fabric
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
@@ -18,19 +18,27 @@ logger = logging.getLogger(__name__)
 def index(request):
     return render(request, 'index.html')
 
+
+def fabrics_data_view(request):
+    fabrics = Fabric.objects.all()
+    data = [{'id': fabric.id, 'name': fabric.name, 'vsan': fabric.vsan} for fabric in fabrics]
+    return JsonResponse(data, safe=False)
+    
+
 @csrf_exempt
 def aliases(request):
     if request.method == 'POST':
         data = json.loads(request.POST['data'])
         
         logger.debug(f"Received data: {data}")  # Add this line
-
+        print(data)
         # Update existing records and add new ones
         for row in data:
+            fabric = Fabric.objects.get(id=row['fabric'])
             if row['id']:  # If there's an ID, update the record
-                SANAlias.objects.filter(id=row['id']).update(alias_name=row['alias_name'], WWPN=row['WWPN'], use=row['use'])
+                SANAlias.objects.filter(id=row['id']).update(alias_name=row['alias_name'], WWPN=row['WWPN'], use=row['use'], fabric=fabric)
             else:  # If there's no ID, create a new record
-                san_alias = SANAlias(alias_name=row['alias_name'], WWPN=row['WWPN'], use=row['use'])
+                san_alias = SANAlias(alias_name=row['alias_name'], WWPN=row['WWPN'], use=row['use'], fabric=fabric)
                 san_alias.save()
                 data[data.index(row)]['id'] = san_alias.id  # Update the data with the newly created alias's ID
 
