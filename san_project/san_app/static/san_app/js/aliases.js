@@ -42,10 +42,10 @@ $(document).ready(function() {
             aliasTable = new Handsontable(container, {
                 licenseKey: 'non-commercial-and-evaluation',
                 data: data,
-                minRows: 5,
-                minCols: 5,
+                minRows: 1,
+                minCols: 6,
                 rowHeaders: false,
-                colHeaders: ["ID", "Alias Name", "WWPN", "Use", "Fabric"],
+                colHeaders: ["ID", "Alias Name", "WWPN", "Use", "Fabric", "Exists"],
                 contextMenu: ['row_above', 'row_below', 'remove_row', '---------', 'undo', 'redo'],  // Custom context menu options
                 minSpareRows: 1,  // Always leave one spare row at the end
                     // Enable column resizing
@@ -60,7 +60,11 @@ $(document).ready(function() {
                     { data: 'id', readOnly: true },
                     { data: 'alias_name' },
                     { data: 'WWPN' },
-                    { data: 'use' },
+                    { 
+                        type: 'dropdown',
+                        editor: 'select',
+                        selectOptions: ['init', 'target', 'both'],
+                        data: 'use' },
                     {
                         data: 'fabric_id',
                         type: 'dropdown',
@@ -70,17 +74,26 @@ $(document).ready(function() {
                           }));
                         },
                         renderer: function(instance, td, row, col, prop, value, cellProperties) {
-                          Handsontable.renderers.TextRenderer.apply(this, arguments);
+                          Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);
                           if (prop === "fabric_id" && value !== null){
                             var fabric = fabricSelectOptions.find(function(fabric) {
+                              console.log(td, row, prop, value)
                               return fabric.value === value;
                             });
                             if (fabric) {
                               td.innerHTML = fabric.label;
                             }
                           }
-                        }
-                      }
+                        },
+                        trimDropdown: false
+                    },
+                    {   
+                        type: 'dropdown',
+                        editor: 'select',
+                        selectOptions: ['True','False'],
+                        data: 'exists'
+                    }
+
                       
                 ],
                 beforeChange: function(changes) {
@@ -136,7 +149,8 @@ $('#submit-data').click(function() {
                 alias_name: row[1],
                 WWPN: row[2],
                 use: row[3],
-                fabric: row[4]
+                fabric: row[4],
+                exists: row[5]
             };
         }
     });

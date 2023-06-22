@@ -22,6 +22,12 @@ def fabrics_data(request):
     return JsonResponse(data, safe=False)
     
 
+def config(request):
+    if request.method == 'POST':
+        pass
+    else:
+        return render(request, 'config.html')
+    
 @csrf_exempt
 def aliases(request):
     if request.method == 'POST':
@@ -30,9 +36,9 @@ def aliases(request):
         for row in data:
             fabric = Fabric.objects.get(id=row['fabric'])
             if row['id']:  # If there's an ID, update the record
-                SANAlias.objects.filter(id=row['id']).update(alias_name=row['alias_name'], WWPN=row['WWPN'], use=row['use'], fabric=fabric)
+                SANAlias.objects.filter(id=row['id']).update(alias_name=row['alias_name'], WWPN=row['WWPN'], use=row['use'], fabric=fabric, exists=row['exists'])
             else:  # If there's no ID, create a new record
-                san_alias = SANAlias(alias_name=row['alias_name'], WWPN=row['WWPN'], use=row['use'], fabric=fabric)
+                san_alias = SANAlias(alias_name=row['alias_name'], WWPN=row['WWPN'], use=row['use'], fabric=fabric, exists=row['exists'])
                 san_alias.save()
                 data[data.index(row)]['id'] = san_alias.id  # Update the data with the newly created alias's ID
         aliases_to_keep = [row['id'] for row in data if row['id']]
@@ -54,9 +60,9 @@ def fabrics(request):
         for row in data:
             if row and row['id']:  # If there's an ID, update the record
                 # print(row)
-                Fabric.objects.filter(id=row['id']).update(name=row['name'], san_vendor=row['san_vendor'], zoneset_name=row['zoneset_name'], vsan=row['vsan'])
+                Fabric.objects.filter(id=row['id']).update(name=row['name'], san_vendor=row['san_vendor'], zoneset_name=row['zoneset_name'], vsan=row['vsan'], exists=row['exists'])
             else:  # If there's no ID, create a new record
-                fabric = Fabric(name=row['name'], san_vendor=row['san_vendor'], zoneset_name=row['zoneset_name'], vsan=row['vsan'])
+                fabric = Fabric(name=row['name'], san_vendor=row['san_vendor'], zoneset_name=row['zoneset_name'], vsan=row['vsan'], exists=row['exists'])
                 fabric.save()
                 data[data.index(row)]['id'] = fabric.id  # Update the data with the newly created alias's ID
         fabrics_to_keep = [row['id'] for row in data if row['id']]
@@ -66,4 +72,9 @@ def fabrics(request):
     else:
         # For GET requests, we just send all the records to the template
         fabrics = Fabric.objects.values()
+        # Convert boolean values to lowercase false
+        for fabric in fabrics:
+            if fabric['exists'] is False:
+                fabric['exists'] = 'false'
+
         return render(request, 'fabrics.html', {'fabrics': list(fabrics)})

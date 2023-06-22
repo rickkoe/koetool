@@ -42,10 +42,10 @@ $(document).ready(function() {
             fabricTable = new Handsontable(container, {
                 licenseKey: 'non-commercial-and-evaluation',
                 data: data,
-                minRows: 5,
-                minCols: 5,
+                minRows: 1,
+                minCols: 6,
                 rowHeaders: false,
-                colHeaders: ["ID", "Name", "Vendor", "Active Zoneset", "VSAN"],
+                colHeaders: ["ID", "Name", "Vendor", "Active Zoneset", "VSAN", "Exists"],
                 contextMenu: ['row_above', 'row_below', 'remove_row', '---------', 'undo', 'redo'],  // Custom context menu options
                 minSpareRows: 1,  // Always leave one spare row at the end
                     // Enable column resizing
@@ -59,9 +59,21 @@ $(document).ready(function() {
                 columns: [
                     { data: 'id', readOnly: true },
                     { data: 'name' },
-                    { data: 'san_vendor' },
+                    { 
+                        type: 'dropdown',
+                        editor: 'select',
+                        selectOptions: ['Brocade', 'Cisco'],
+                        data: 'san_vendor'   
+                    },
                     { data: 'zoneset_name' },
-                    { data: 'vsan'}                   
+                    { data: 'vsan'},
+                    { 
+                        type: 'dropdown',
+                        editor: 'select',
+                        selectOptions: ['True','False'],
+                        data: 'exists'
+                    }
+
                 ],
                
             });
@@ -78,7 +90,8 @@ $('#submit-fabric-data').click(function() {
                 name: row[1],
                 san_vendor: row[2],
                 zoneset_name: row[3],
-                vsan: row[4]
+                vsan: row[4],
+                exists: row[5]
             };
         }
     });
