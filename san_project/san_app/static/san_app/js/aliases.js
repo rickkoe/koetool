@@ -6,6 +6,14 @@ var aliasTable;
 var fabricSelectOptions = [];
 var fabricData = []
 
+function getTextWidth(text) {
+    var canvas = document.createElement('canvas');
+    var context = canvas.getContext('2d');
+    context.font = '12px Arial'; // Customize the font and size as needed
+    var metrics = context.measureText(text);
+    return metrics.width;
+  }
+  
   
 
 $(document).ready(function() {
@@ -19,7 +27,7 @@ $(document).ready(function() {
 
     // Fetch fabric data from the server
     $.ajax({
-        url: '/fabrics/', // Replace with the appropriate URL to fetch fabric data
+        url: '/fabrics_data/', // Replace with the appropriate URL to fetch fabric data
         type: 'GET',
         dataType: 'json',
         success: function(fabricData) {
@@ -36,7 +44,7 @@ $(document).ready(function() {
                 data: data,
                 minRows: 5,
                 minCols: 5,
-                rowHeaders: true,
+                rowHeaders: false,
                 colHeaders: ["ID", "Alias Name", "WWPN", "Use", "Fabric"],
                 contextMenu: ['row_above', 'row_below', 'remove_row', '---------', 'undo', 'redo'],  // Custom context menu options
                 minSpareRows: 1,  // Always leave one spare row at the end
@@ -64,11 +72,9 @@ $(document).ready(function() {
                         renderer: function(instance, td, row, col, prop, value, cellProperties) {
                           Handsontable.renderers.TextRenderer.apply(this, arguments);
                           if (prop === "fabric_id" && value !== null){
-                            // console.log(value)
                             var fabric = fabricSelectOptions.find(function(fabric) {
                               return fabric.value === value;
                             });
-                            console.log(fabric)
                             if (fabric) {
                               td.innerHTML = fabric.label;
                             }
@@ -92,8 +98,6 @@ $(document).ready(function() {
                 },
                 afterChange: function(changes, source) {
                     if (source === 'edit') {
-                        console.log(changes)
-                        console.log(data)
                         // changes is an array with the following fields:
                         // 0 = the row in the table
                         // 1 = the table column that was changed
@@ -109,7 +113,6 @@ $(document).ready(function() {
                                 var fabric = fabricSelectOptions.find(function(option) {
                                     return option.label === value;
                                 });
-                                console.log(fabric)
                 
                                 if (fabric) {
                                     data[row].fabric_id = fabric.value;

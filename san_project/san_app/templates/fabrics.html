@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+{% extends "base_generic.html" %}
+{% load static %}
+{% block content %}
+<h1>Fabrics List</h1>
+
+<div id="fabricTable"></div>
+
+<button id="submit-fabric-data">Save Changes</button>
+
+
+{% endblock %}
+{% block extra_js %}
+
+<script src="{% static 'san_app/js/fabrics.js' %}" type="module"></script>
+
+<script>
+    var data = {{ fabrics|safe }};
+</script>
+{% endblock %}
