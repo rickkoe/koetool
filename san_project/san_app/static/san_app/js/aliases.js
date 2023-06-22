@@ -6,6 +6,8 @@ var aliasTable;
 var fabricSelectOptions = [];
 var fabricData = []
 
+  
+
 $(document).ready(function() {
     var container = document.getElementById('aliasTable');
 
@@ -52,15 +54,28 @@ $(document).ready(function() {
                     { data: 'WWPN' },
                     { data: 'use' },
                     {
-                        data: 'fabric',
+                        data: 'fabric_id',
                         type: 'dropdown',
                         source: function(query, process) {
                           process(fabricSelectOptions.map(function(fabric) {
                             return fabric.label;
                           }));
                         },
-                        strict: true
-                      },
+                        renderer: function(instance, td, row, col, prop, value, cellProperties) {
+                          Handsontable.renderers.TextRenderer.apply(this, arguments);
+                          if (prop === "fabric_id" && value !== null){
+                            // console.log(value)
+                            var fabric = fabricSelectOptions.find(function(fabric) {
+                              return fabric.value === value;
+                            });
+                            console.log(fabric)
+                            if (fabric) {
+                              td.innerHTML = fabric.label;
+                            }
+                          }
+                        }
+                      }
+                      
                 ],
                 beforeChange: function(changes) {
                     changes.forEach(function(change) {
@@ -77,20 +92,27 @@ $(document).ready(function() {
                 },
                 afterChange: function(changes, source) {
                     if (source === 'edit') {
+                        console.log(changes)
+                        console.log(data)
+                        // changes is an array with the following fields:
+                        // 0 = the row in the table
+                        // 1 = the table column that was changed
+                        // 2 = the old value
+                        // 3 = the new value
+
                         changes.forEach(function(change) {
                             var row = change[0];
                             var prop = change[1];
                             var value = change[3];
                 
-                            if (prop === 'fabric') {
+                            if (prop === 'fabric_id') {
                                 var fabric = fabricSelectOptions.find(function(option) {
                                     return option.label === value;
                                 });
+                                console.log(fabric)
                 
                                 if (fabric) {
-                                    data[row].fabric = fabric.value;
-                                    console.log(row)
-                                    console.log(data)
+                                    data[row].fabric_id = fabric.value;
                                 }
                             }
                         });
