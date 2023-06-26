@@ -74,3 +74,46 @@ class Config(models.Model):
     )
 
 
+class Volume(models.Model):
+    name = models.CharField(max_length=200)
+    TYPE_CHOICES = [
+        ('CKD', 'CKD'),
+        ('FB', 'FB'),
+    ]
+    stg_type = models.CharField(max_length=3, choices=TYPE_CHOICES)
+    # system = models.ForeignKey(StorageAsset, on_delete=models.CASCADE,
+    #                            related_name='volume_system')
+    # host = models.ForeignKey(ServerAsset, on_delete=models.CASCADE, 
+    #                          related_name='volume_host', blank=True, null=True)
+    size = models.IntegerField()
+    UNIT_CHOICES = [
+        ('MiB', 'MiB'),
+        ('GiB', 'GiB'),
+        ('TiB', 'TiB'),
+        ('Cyl', 'Cyl'),
+    ]
+    unit = models.CharField(max_length=3, choices=UNIT_CHOICES)
+    # pool = models.ForeignKey(Pool, on_delete=models.CASCADE,
+    #                          related_name='volume_pool')
+    CAPACITY_SAVINGS_CHOICES = [
+        ('none', 'None'),
+        ('thin', 'Thin Provisioned'),
+        ('comp', 'Compressed'),
+    ]
+    capacity_savings = models.CharField(max_length=4,
+                                        choices=CAPACITY_SAVINGS_CHOICES,
+                                        default='none')
+
+    def ds8k_name(self):
+        return self.name.rsplit('_', 1)[0]
+
+    def ds8k_id(self):
+        return self.name.split('_')[-1]
+
+    def ds8k_lss(self):
+        return (self.name.split('_')[-1])[:2]
+
+    def __str__(self):
+        return self.name    
+
+

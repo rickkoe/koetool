@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import SANAliasForm, BulkUploadForm
 from rest_framework import viewsets
 from .serializers import SANAliasSerializer
-from .models import SANAlias, Fabric
+from .models import SANAlias, Fabric, Config, Volume
+from .forms import ConfigForm
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
@@ -23,10 +23,17 @@ def fabrics_data(request):
     
 
 def config(request):
+    config_instance, created = Config.objects.get_or_create(pk=1)  # Get or create a single instance
+    
+    form = ConfigForm(instance=config_instance)
+    
     if request.method == 'POST':
-        pass
-    else:
-        return render(request, 'config.html')
+        form = ConfigForm(request.POST, instance=config_instance)
+        if form.is_valid():
+            form.save()
+            # Handle form submission
+            
+    return render(request, 'config.html', {'form': form})
     
 @csrf_exempt
 def aliases(request):
@@ -78,3 +85,24 @@ def fabrics(request):
                 fabric['exists'] = 'false'
 
         return render(request, 'fabrics.html', {'fabrics': list(fabrics)})
+    
+@csrf_exempt
+def volumes(request):
+    if request.method == 'POST':
+        data = json.loads(request.POST['data'])
+        # Update existing records and add new ones
+        for row in data:
+            if row['id']:  # If there's an ID, update the record
+                Volume.objects.filter(id=row['id']).update(name=row['name'], stg_type=row['stg_type'], size=row['size'], unit=row['unit'], capacity_savings=row['capacity_savings'])
+            else:  # If there's no ID, create a new record
+                volume = Volume(name=row['name'], stg_type=row['stg_type'], size=row['size'], unit=row['unit'], capacity_savings=row['capacity_savings'])
+                volume.save()
+                data[data.index(row)]['id'] = volume.id  # Update the data with the newly created alias's ID
+        volumes_to_keep = [row['id'] for row in data if row['id']]
+        volumes_to_delete = Volume.objects.exclude(id__in=volumes_to_keep)
+        volumes_to_delete.delete()
+        return JsonResponse({'status': 'success'})
+    else:
+        # For GET requests, we just send all the records to the template
+        volumes = Volume.objects.values()
+        return render(request, 'volumes.html', {'volumes': list(volumes)})

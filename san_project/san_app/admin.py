@@ -5,3 +5,4 @@ from . import models
 admin.site.register(models.SANAlias)
 admin.site.register(models.Fabric)
 admin.site.register(models.Config)
+admin.site.register(models.Volume)
