@@ -113,12 +113,6 @@ $(document).ready(function() {
                 },
                 afterChange: function(changes, source) {
                     if (source === 'edit') {
-                        // changes is an array with the following fields:
-                        // 0 = the row in the table
-                        // 1 = the table column that was changed
-                        // 2 = the old value
-                        // 3 = the new value
-
                         changes.forEach(function(change) {
                             var row = change[0];
                             var prop = change[1];
