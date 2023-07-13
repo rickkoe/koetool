@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+{% extends "base_generic.html" %}
+{% load static %}
+{% block content %}
+<h1>Zones</h1>
+
+<div id="zoneTable"></div>
+
+<button id="submit-data">Save Changes</button>
+
+
+{% endblock %}
+{% block extra_js %}
+
+<script src="{% static 'san_app/js/zones.js' %}" type="module"></script>
+
+<script>
+    var data = {{ data|safe }};
+    
+    // Handsontable initialization code
+    $(document).ready(function() {
+        var container = document.getElementById('zoneTable');
+        // Check if data array is empty and add an empty row if necessary
+        if (typeof data === 'undefined' || data.length === 0) {
+            data = [[]];
+        }
+    
+        zoneTable = new Handsontable(container, {
+            // Other configuration options
+            columns: [
+                { data: 'id', readOnly: true },
+                { data: 'name' },
+                // Other columns
+                // Dynamically generated member columns
+                {% for member_column in data.0.keys %}
+                {% if member_column|slice:"0:7" == 'member_' %}
+                { data: '{{ member_column }}' },
+                {% endif %}
+                {% endfor %}
+            ]
+        });
+    });
+</script>
+{% endblock %}

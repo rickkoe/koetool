@@ -43,9 +43,9 @@ $(document).ready(function() {
                 licenseKey: 'non-commercial-and-evaluation',
                 data: data,
                 minRows: 1,
-                minCols: 6,
+                minCols: 5,
                 rowHeaders: false,
-                colHeaders: ["ID", "Name", "Vendor", "Active Zoneset", "VSAN", "Exists"],
+                colHeaders: ["ID", "Name", "Active Zoneset", "VSAN", "Exists"],
                 contextMenu: ['row_above', 'row_below', 'remove_row', '---------', 'undo', 'redo'],  // Custom context menu options
                 minSpareRows: 1,  // Always leave one spare row at the end
                     // Enable column resizing
@@ -59,12 +59,6 @@ $(document).ready(function() {
                 columns: [
                     { data: 'id', readOnly: true },
                     { data: 'name' },
-                    { 
-                        type: 'dropdown',
-                        editor: 'select',
-                        selectOptions: ['Brocade', 'Cisco'],
-                        data: 'san_vendor'   
-                    },
                     { data: 'zoneset_name' },
                     { data: 'vsan'},
                     { 
@@ -88,10 +82,9 @@ $('#submit-fabric-data').click(function() {
             return {
                 id: row[0],
                 name: row[1],
-                san_vendor: row[2],
-                zoneset_name: row[3],
-                vsan: row[4],
-                exists: row[5]
+                zoneset_name: row[2],
+                vsan: row[3],
+                exists: row[4]
             };
         }
     });

@@ -2,14 +2,6 @@ from django.db import models
 
 class Fabric(models.Model):
     name = models.CharField(max_length=64)
-    SAN_VENDOR_CHOICES = [
-        ('Brocade', 'Brocade'),
-        ('Cisco', 'Cisco'),
-    ]
-    san_vendor = models.CharField(
-        max_length=7,
-        choices=SAN_VENDOR_CHOICES
-    )
     zoneset_name = models.CharField(max_length=200)
     vsan = models.IntegerField(blank=True, null=True)
     EXIST_CHOICES = [
@@ -23,20 +15,20 @@ class Fabric(models.Model):
 
 
 class SANAlias(models.Model):
-    fabric = models.ForeignKey(Fabric, on_delete=models.CASCADE, null=True)
+    fabric = models.ForeignKey(Fabric, on_delete=models.CASCADE,blank=True, null=True)
     USE_CHOICES = [
         ('init', 'Initiator'),
         ('target', 'Target'),
         ('both', 'Both'),
     ]
-    alias_name = models.CharField(max_length=100, unique=True)
+    alias_name = models.CharField(max_length=100, unique=False)
     WWPN = models.CharField(max_length=23, unique=True)
     use = models.CharField(max_length=6, choices=USE_CHOICES, null=True, blank=True)
     EXIST_CHOICES = [
         ('True', 'True'),
         ('False', 'False')
     ]
-    exists = models.CharField(max_length=5, choices=EXIST_CHOICES)
+    exists = models.CharField(max_length=5, choices=EXIST_CHOICES, default='False')
 
     def __str__(self):
         return self.alias_name
@@ -114,6 +106,35 @@ class Volume(models.Model):
         return (self.name.split('_')[-1])[:2]
 
     def __str__(self):
-        return self.name    
+        return self.name
+    
+
+class Zone(models.Model):
+    name = models.CharField(max_length=200)
+    fabric = models.ForeignKey(Fabric, on_delete=models.CASCADE)
+    ZONE_TYPE_CHOICES = [
+        ('smart_peer', 'smart_peer'),
+        ('standard', 'standard'),
+    ]
+    zone_type = models.CharField(max_length=20,
+                                choices=ZONE_TYPE_CHOICES,
+                                default='smart_peer')
+    EXIST_CHOICES = [
+        ('True', 'True'),
+        ('False', 'False')
+    ]
+    exists = models.CharField(max_length=5, choices=EXIST_CHOICES)
+    member_list = models.ManyToManyField(SANAlias)
+
+    def __str__(self):
+        return self.name
+    
+    def get_member_list_columns(self):
+        member_columns = {}
+        for member in self.member_list.all():
+            member_columns[f'member_{member.id}'] = models.CharField(max_length=100)
+        return member_columns
+
+
 
 

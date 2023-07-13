@@ -3,6 +3,9 @@
 {% load static %}
 {% block content %}
 <h1>Alias List</h1>
+<button id="jumpToBottomButton">Jump to Bottom</button>
+
+<div id="container"></div>
 
 <div id="aliasTable"></div>
 
@@ -16,5 +19,26 @@
 
 <script>
     var data = {{ aliases|safe }};
+</script>
+
+<script>
+    $(document).ready(function() {
+        var container = document.getElementById('aliasTable');
+
+        // Initialize your Handsontable here
+
+        // Scroll to the bottom of the table
+        function scrollToBottom() {
+            var tableContainer = container.querySelector('.ht_master');
+
+            if (tableContainer) {
+                tableContainer.scrollTop = tableContainer.scrollHeight;
+            }
+        }
+
+        // Attach a click event handler to the button
+        var jumpToBottomButton = document.getElementById('jumpToBottomButton');
+        jumpToBottomButton.addEventListener('click', scrollToBottom);
+    });
 </script>
 {% endblock %}

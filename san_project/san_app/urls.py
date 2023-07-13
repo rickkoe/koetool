@@ -8,6 +8,7 @@ urlpatterns = [
     path('fabrics_data/', views.fabrics_data, name='fabrics_data'),
     path('fabrics/', views.fabrics, name='fabrics'),
     path('volumes/',views.volumes, name='volumes'),
+    path('zones/', views.zones, name='zones'),
 ]
 
 

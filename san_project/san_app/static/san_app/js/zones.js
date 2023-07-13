@@ -2,7 +2,7 @@ $.ajaxSetup({
     headers: { "X-CSRFToken": getCookie("csrftoken") }
 });
 
-var aliasTable;
+var zoneTable;
 var fabricSelectOptions = [];
 var fabricData = []
 
@@ -17,7 +17,7 @@ function getTextWidth(text) {
   
 
 $(document).ready(function() {
-    var container = document.getElementById('aliasTable');
+    var container = document.getElementById('zoneTable');
 
 
     // Check if data array is empty and add an empty row if necessary
@@ -39,15 +39,13 @@ $(document).ready(function() {
                 });
             }
 
-            aliasTable = new Handsontable(container, {
+            zoneTable = new Handsontable(container, {
                 licenseKey: 'non-commercial-and-evaluation',
                 data: data,
                 minRows: 1,
                 minCols: 6,
                 rowHeaders: false,
-                // when selection reaches the edge of the grid's viewport, scroll the viewport
-                dragToScroll: true,
-                colHeaders: ["ID", "Alias Name", "WWPN", "Use", "Fabric", "Exists"],
+                colHeaders: ["ID", "Zone Name", "Fabric", "Zone Type", "Exists", "Members"],
                 contextMenu: ['row_above', 'row_below', 'remove_row', '---------', 'undo', 'redo'],  // Custom context menu options
                 minSpareRows: 1,  // Always leave one spare row at the end
                     // Enable column resizing
@@ -60,13 +58,7 @@ $(document).ready(function() {
                 },
                 columns: [
                     { data: 'id', readOnly: true },
-                    { data: 'alias_name' },
-                    { data: 'WWPN' },
-                    { 
-                        type: 'dropdown',
-                        editor: 'select',
-                        selectOptions: ['init', 'target', 'both'],
-                        data: 'use' },
+                    { data: 'name' },
                     {
                         data: 'fabric_id',
                         type: 'dropdown',
@@ -89,14 +81,19 @@ $(document).ready(function() {
                         },
                         trimDropdown: false
                     },
+                    { 
+                        type: 'dropdown',
+                        editor: 'select',
+                        selectOptions: ['smart_peer', 'standard'],
+                        data: 'zone_type' },
                     {   
                         type: 'dropdown',
                         editor: 'select',
                         selectOptions: ['True','False'],
                         data: 'exists'
-                    }
-
-                      
+                    },
+                    ...memberColumns
+  
                 ],
                 beforeChange: function(changes) {
                     changes.forEach(function(change) {
@@ -144,15 +141,15 @@ $(document).ready(function() {
 
 
 $('#submit-data').click(function() {
-    var data = aliasTable.getData().map(function(row) {
+    var data = zoneTable.getData().map(function(row) {
         if (row[1] || row[2] || row[3] || row[4]) {  // Only send rows that have at least one of these fields filled
             return {
                 id: row[0],
-                alias_name: row[1],
-                WWPN: row[2],
-                use: row[3],
-                fabric: row[4],
-                exists: row[5]
+                name: row[1],
+                fabric: row[2],
+                zone_type: row[3],
+                exists: row[4],
+                member_list: row[5]
             };
         }
     });
