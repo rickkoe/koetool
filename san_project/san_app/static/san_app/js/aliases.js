@@ -1,3 +1,12 @@
+// import 'handsontable/dist/handsontable.full.min.css';
+// import Handsontable from 'handsontable/base';
+// import { registerAllModules } from 'handsontable/registry';
+
+// registerAllModules();
+
+
+
+
 $.ajaxSetup({
     headers: { "X-CSRFToken": getCookie("csrftoken") }
 });
@@ -47,7 +56,7 @@ $(document).ready(function() {
                 rowHeaders: false,
                 // when selection reaches the edge of the grid's viewport, scroll the viewport
                 dragToScroll: true,
-                colHeaders: ["ID", "Alias Name", "WWPN", "Use", "Fabric", "Exists"],
+                colHeaders: ["ID", "Alias Name", "WWPN", "Use", "Fabric", "Create", "Zone"],
                 contextMenu: ['row_above', 'row_below', 'remove_row', '---------', 'undo', 'redo'],  // Custom context menu options
                 minSpareRows: 1,  // Always leave one spare row at the end
                     // Enable column resizing
@@ -64,8 +73,8 @@ $(document).ready(function() {
                     { data: 'WWPN' },
                     { 
                         type: 'dropdown',
-                        editor: 'select',
-                        selectOptions: ['init', 'target', 'both'],
+                        // editor: 'select',
+                        source: ['init', 'target', 'both'],
                         data: 'use' },
                     {
                         data: 'fabric_id',
@@ -76,10 +85,10 @@ $(document).ready(function() {
                           }));
                         },
                         renderer: function(instance, td, row, col, prop, value, cellProperties) {
-                          Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);
+                          Handsontable.renderers.TextRenderer.apply(this, arguments);
                           if (prop === "fabric_id" && value !== null){
                             var fabric = fabricSelectOptions.find(function(fabric) {
-                              console.log(td, row, prop, value)
+                            //   console.log(td, row, prop, value)
                               return fabric.value === value;
                             });
                             if (fabric) {
@@ -89,15 +98,21 @@ $(document).ready(function() {
                         },
                         trimDropdown: false
                     },
-                    {   
-                        type: 'dropdown',
-                        editor: 'select',
-                        selectOptions: ['True','False'],
-                        data: 'exists'
-                    }
+                    {
+                        data: 'create',
+                        type: "checkbox",
+                        className: "htCenter"
+                      },
+                      {
+                        data: 'include_in_zoning',
+                        type: "checkbox",
+                        className: "htCenter"
+                      },
+        
 
                       
                 ],
+
                 beforeChange: function(changes) {
                     changes.forEach(function(change) {
                         if (change[1] === 'WWPN') {  // If the change is in the 'WWPN' column
@@ -111,6 +126,17 @@ $(document).ready(function() {
                         }
                     });
                 },
+                afterBeginEditing: function(row, col, prop, value, cellProperties) {
+                    if (prop === 'fabric_id') {
+                      var fabric = fabricSelectOptions.find(function(option) {
+                        return option.value === value;
+                      });
+                  
+                      if (fabric) {
+                        aliasTable.setDataAtCell(row, col, fabric.label);
+                      }
+                    }
+                  },                  
                 afterChange: function(changes, source) {
                     if (source === 'edit') {
                         changes.forEach(function(change) {
@@ -129,7 +155,7 @@ $(document).ready(function() {
                             }
                         });
                     }
-                }
+                },
                 
             });
         }
@@ -140,13 +166,15 @@ $(document).ready(function() {
 $('#submit-data').click(function() {
     var data = aliasTable.getData().map(function(row) {
         if (row[1] || row[2] || row[3] || row[4]) {  // Only send rows that have at least one of these fields filled
+            console.log(row)
             return {
                 id: row[0],
                 alias_name: row[1],
                 WWPN: row[2],
                 use: row[3],
                 fabric: row[4],
-                exists: row[5]
+                create: row[5],
+                include_in_zoning: row[6]
             };
         }
     });

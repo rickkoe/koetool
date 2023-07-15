@@ -4,8 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>{% block title %}{% endblock %}</title>
+
     <link href="{% static 'san_app/handsontable/handsontable.full.min.css' %}" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    {% block extra_head %}{% endblock %}
 </head>
 <body>
     <header>
@@ -13,6 +21,9 @@
     </header>
 
     <nav>
+        <button onclick="location.href='{% url 'admin:index' %}'" type="button" target="_blank">
+            Admin
+        </button>
         <button onclick="location.href='{% url 'index' %}'" type="button">
             Home
         </button>
@@ -31,6 +42,7 @@
         <button onclick="location.href='{% url 'zones' %}'" type="button">
             Zones
         </button>
+
     </nav>
 
     <main>
@@ -44,6 +56,20 @@
     </footer>
 
     <!-- JavaScript files-->
+
+    {% comment %} This Script will pop up a temporary message (instead of an alert that has to be acknowledged) {% endcomment %}
+    <script>
+        function tempAlert(msg,duration)
+        {
+        var el = document.createElement("div");
+        el.setAttribute("style","position:absolute;top:15%;right:12%;background-color:white;");
+        el.innerHTML = msg;
+        setTimeout(function(){
+        el.parentNode.removeChild(el);
+        },duration)
+        document.body.appendChild(el);
+        }
+    </script>
     <script src="{% static 'san_app/jquery/jquery.min.js' %}"></script>
     <script src="{% static 'san_app/handsontable/handsontable.full.min.js' %}"></script>
 

@@ -2,16 +2,21 @@
 {% extends "base_generic.html" %}
 {% load static %}
 {% block content %}
+<div class="container">
 <h1>Alias List</h1>
-<button id="jumpToBottomButton">Jump to Bottom</button>
+<div>
+<button id="submit-data" class="btn btn-primary">Save Changes</button>
+<button onclick="location.href='{% url 'create_aliases' %}'" type="button" class="btn btn-primary">
+    Create Alias Commands
+</button>
+</div>
 
 <div id="container"></div>
 
 <div id="aliasTable"></div>
 
-<button id="submit-data">Save Changes</button>
 
-
+</div>
 {% endblock %}
 {% block extra_js %}
 
@@ -20,25 +25,5 @@
 <script>
     var data = {{ aliases|safe }};
 </script>
-
-<script>
-    $(document).ready(function() {
-        var container = document.getElementById('aliasTable');
-
-        // Initialize your Handsontable here
-
-        // Scroll to the bottom of the table
-        function scrollToBottom() {
-            var tableContainer = container.querySelector('.ht_master');
-
-            if (tableContainer) {
-                tableContainer.scrollTop = tableContainer.scrollHeight;
-            }
-        }
-
-        // Attach a click event handler to the button
-        var jumpToBottomButton = document.getElementById('jumpToBottomButton');
-        jumpToBottomButton.addEventListener('click', scrollToBottom);
-    });
-</script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 {% endblock %}

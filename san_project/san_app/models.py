@@ -1,14 +1,15 @@
 from django.db import models
 
+TRUE_FALSE = [
+    ('True', 'True'),
+    ('False', 'False')
+]
+
 class Fabric(models.Model):
     name = models.CharField(max_length=64)
     zoneset_name = models.CharField(max_length=200)
     vsan = models.IntegerField(blank=True, null=True)
-    EXIST_CHOICES = [
-        ('True', 'True'),
-        ('False', 'False')
-    ]
-    exists = models.CharField(max_length=5, choices=EXIST_CHOICES)
+    exists = models.CharField(max_length=5, choices=TRUE_FALSE)
 
     def __str__(self):
         return self.name
@@ -24,11 +25,8 @@ class SANAlias(models.Model):
     alias_name = models.CharField(max_length=100, unique=False)
     WWPN = models.CharField(max_length=23, unique=True)
     use = models.CharField(max_length=6, choices=USE_CHOICES, null=True, blank=True)
-    EXIST_CHOICES = [
-        ('True', 'True'),
-        ('False', 'False')
-    ]
-    exists = models.CharField(max_length=5, choices=EXIST_CHOICES, default='False')
+    create = models.CharField(max_length=5, choices=TRUE_FALSE, default='False')
+    include_in_zoning = models.CharField(max_length=5, choices=TRUE_FALSE, default='False')
 
     def __str__(self):
         return self.alias_name
@@ -119,11 +117,7 @@ class Zone(models.Model):
     zone_type = models.CharField(max_length=20,
                                 choices=ZONE_TYPE_CHOICES,
                                 default='smart_peer')
-    EXIST_CHOICES = [
-        ('True', 'True'),
-        ('False', 'False')
-    ]
-    exists = models.CharField(max_length=5, choices=EXIST_CHOICES)
+    exists = models.CharField(max_length=5, choices=TRUE_FALSE)
     member_list = models.ManyToManyField(SANAlias)
 
     def __str__(self):

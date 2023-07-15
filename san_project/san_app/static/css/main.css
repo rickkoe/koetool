@@ -1,0 +1,27 @@
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+.code-block {
+    position: relative;
+    background-color: #151515;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    line-height: 1.4;
+}
+
+/* code {
+    color: #00C200;
+} */
+
+
+.copy-button {
+    /* Inherit styles from btn-primary */
+    background-color: #131516;
+    border-color: #131516;
+    color: #fff;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}

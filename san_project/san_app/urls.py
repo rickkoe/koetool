@@ -9,6 +9,7 @@ urlpatterns = [
     path('fabrics/', views.fabrics, name='fabrics'),
     path('volumes/',views.volumes, name='volumes'),
     path('zones/', views.zones, name='zones'),
+    path('create-aliases/', views.create_aliases, name='create_aliases')
 ]
 
 
