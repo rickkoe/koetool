@@ -164,7 +164,7 @@ def create_aliases(request):
                     alias_command_dict[key].extend(['config t','device-alias database'])
                 alias_command_dict[key].append(f'device-alias name {alias.alias_name} pwwn {alias.WWPN}')
             elif config.cisco_alias == 'fcalias':
-                alias_command_dict[key].append(f'fcalias name {alias.alias_name} vsan {alias.fabric.vsan} ; member pwwn {alias.WWPN}')
+                alias_command_dict[key].append(f'fcalias name {alias.alias_name} vsan {alias.fabric.vsan} ; member pwwn {alias.WWPN} {alias.use}')
         elif config.san_vendor == 'BR':
             alias_command_dict[key].append(f'alicreate "{alias.alias_name}", "{alias.WWPN}"')
     if config.san_vendor == 'CI' and config.cisco_alias == 'device-alias':

@@ -54,6 +54,7 @@ $(document).ready(function() {
                 minRows: 1,
                 minCols: 6,
                 rowHeaders: false,
+
                 // when selection reaches the edge of the grid's viewport, scroll the viewport
                 dragToScroll: true,
                 colHeaders: ["ID", "Alias Name", "WWPN", "Use", "Fabric", "Create", "Zone"],
@@ -112,6 +113,8 @@ $(document).ready(function() {
 
                       
                 ],
+                filters: true,
+                dropdownMenu: true,
 
                 beforeChange: function(changes) {
                     changes.forEach(function(change) {
@@ -157,6 +160,7 @@ $(document).ready(function() {
                     }
                 },
                 
+                
             });
         }
     });
@@ -164,6 +168,9 @@ $(document).ready(function() {
 
 
 $('#submit-data').click(function() {
+    aliasTable.getPlugin('Filters').clearConditions();
+    aliasTable.getPlugin('Filters').filter();
+    aliasTable.render();
     var data = aliasTable.getData().map(function(row) {
         if (row[1] || row[2] || row[3] || row[4]) {  // Only send rows that have at least one of these fields filled
             console.log(row)

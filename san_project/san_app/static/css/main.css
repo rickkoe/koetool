@@ -10,14 +10,10 @@ ul {
     margin-bottom: 20px;
     line-height: 1.4;
 }
-
-/* code {
-    color: #00C200;
-} */
-
-
+code {
+    color: #00C200 !important;
+}
 .copy-button {
-    /* Inherit styles from btn-primary */
     background-color: #131516;
     border-color: #131516;
     color: #fff;
