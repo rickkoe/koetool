@@ -26,33 +26,9 @@
                 <a class="nav-item nav-link {% if request.resolver_match.url_name == 'config' %}active{% endif %}" href="{% url 'config' %}">Config</a>
                 <a class="nav-item nav-link {% if request.resolver_match.url_name == 'fabrics' %}active{% endif %}" href="{% url 'fabrics' %}">Fabrics</a>
                 <a class="nav-item nav-link {% if request.resolver_match.url_name == 'aliases' %}active{% endif %}" href="{% url 'aliases' %}">Aliases</a>
-                <a class="nav-item nav-link {% if request.resolver_match.url_name == 'zones' %}active{% endif %}" href="{% url 'zones' %}">Zones</a>
-                <a class="nav-item nav-link {% if request.resolver_match.url_name == 'volumes' %}active{% endif %}" href="{% url 'volumes' %}">Volumes</a>
         </div>
     </div>
 </nav>
-{% comment %} 
-        <button onclick="location.href='{% url 'index' %}'" type="button">
-            Home
-        </button>
-        <button onclick="location.href='{% url 'config' %}'" type="button">
-            Config
-        </button>
-        <button onclick="location.href='{% url 'fabrics' %}'" type="button">
-            Fabrics
-        </button>
-        <button onclick="location.href='{% url 'aliases' %}'" type="button">
-            Aliases
-        </button>
-        <button onclick="location.href='{% url 'volumes' %}'" type="button">
-            Volumes
-        </button>
-        <button onclick="location.href='{% url 'zones' %}'" type="button">
-            Zones
-        </button>
-
-    </nav> {% endcomment %}
-
     <main>
         <div class="container">
         {% block content %}
@@ -66,7 +42,6 @@
     </footer>
 
     <!-- JavaScript files-->
-
     {% comment %} This Script will pop up a temporary message (instead of an alert that has to be acknowledged) {% endcomment %}
     <script>
         function tempAlert(msg,duration)

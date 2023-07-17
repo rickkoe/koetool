@@ -5,6 +5,17 @@ TRUE_FALSE = [
     ('False', 'False')
 ]
 
+
+class Customer(models.Model):
+    name = models.CharField(max_length=200, unique=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+    
+
 class Fabric(models.Model):
     name = models.CharField(max_length=64)
     zoneset_name = models.CharField(max_length=200)
@@ -16,6 +27,8 @@ class Fabric(models.Model):
 
 
 class SANAlias(models.Model):
+    customer = models.ForeignKey(Customer, related_name='alias_customer',
+                        on_delete=models.CASCADE)
     fabric = models.ForeignKey(Fabric, on_delete=models.CASCADE,blank=True, null=True)
     USE_CHOICES = [
         ('init', 'Initiator'),
@@ -33,6 +46,8 @@ class SANAlias(models.Model):
     
 
 class Config(models.Model):
+    customer = models.ForeignKey(Customer, related_name='active_customer',
+                        on_delete=models.CASCADE)
     san_vendor = models.CharField(
         max_length=7,
         choices=[
@@ -62,73 +77,3 @@ class Config(models.Model):
             ('all-to-all', 'all-to-all')
         ]
     )
-
-
-class Volume(models.Model):
-    name = models.CharField(max_length=200)
-    TYPE_CHOICES = [
-        ('CKD', 'CKD'),
-        ('FB', 'FB'),
-    ]
-    stg_type = models.CharField(max_length=3, choices=TYPE_CHOICES)
-    # system = models.ForeignKey(StorageAsset, on_delete=models.CASCADE,
-    #                            related_name='volume_system')
-    # host = models.ForeignKey(ServerAsset, on_delete=models.CASCADE, 
-    #                          related_name='volume_host', blank=True, null=True)
-    size = models.IntegerField()
-    UNIT_CHOICES = [
-        ('MiB', 'MiB'),
-        ('GiB', 'GiB'),
-        ('TiB', 'TiB'),
-        ('Cyl', 'Cyl'),
-    ]
-    unit = models.CharField(max_length=3, choices=UNIT_CHOICES)
-    # pool = models.ForeignKey(Pool, on_delete=models.CASCADE,
-    #                          related_name='volume_pool')
-    CAPACITY_SAVINGS_CHOICES = [
-        ('none', 'None'),
-        ('thin', 'Thin Provisioned'),
-        ('comp', 'Compressed'),
-    ]
-    capacity_savings = models.CharField(max_length=4,
-                                        choices=CAPACITY_SAVINGS_CHOICES,
-                                        default='none')
-
-    def ds8k_name(self):
-        return self.name.rsplit('_', 1)[0]
-
-    def ds8k_id(self):
-        return self.name.split('_')[-1]
-
-    def ds8k_lss(self):
-        return (self.name.split('_')[-1])[:2]
-
-    def __str__(self):
-        return self.name
-    
-
-class Zone(models.Model):
-    name = models.CharField(max_length=200)
-    fabric = models.ForeignKey(Fabric, on_delete=models.CASCADE)
-    ZONE_TYPE_CHOICES = [
-        ('smart_peer', 'smart_peer'),
-        ('standard', 'standard'),
-    ]
-    zone_type = models.CharField(max_length=20,
-                                choices=ZONE_TYPE_CHOICES,
-                                default='smart_peer')
-    exists = models.CharField(max_length=5, choices=TRUE_FALSE)
-    member_list = models.ManyToManyField(SANAlias)
-
-    def __str__(self):
-        return self.name
-    
-    def get_member_list_columns(self):
-        member_columns = {}
-        for member in self.member_list.all():
-            member_columns[f'member_{member.id}'] = models.CharField(max_length=100)
-        return member_columns
-
-
-
-

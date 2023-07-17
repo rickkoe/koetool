@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework import viewsets
 from .serializers import SANAliasSerializer
-from .models import SANAlias, Fabric, Config, Volume, Zone
+from .models import SANAlias, Fabric, Config
 from .forms import ConfigForm
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -42,7 +42,6 @@ def config(request):
 def aliases(request):
     if request.method == 'POST':
         data = json.loads(request.POST['data'])
-
             # Update existing records and add new ones
         for row in data:
             print(row)
@@ -65,7 +64,8 @@ def aliases(request):
         return JsonResponse({'status': 'success'})
     else:
         # For GET requests, we just send all the records to the template
-        aliases = SANAlias.objects.values()
+        config = Config.objects.first()
+        aliases = SANAlias.objects.values().filter(customer=config.customer)
         return render(request, 'aliases.html', {'aliases': list(aliases)})
     
 
@@ -96,65 +96,12 @@ def fabrics(request):
                 fabric['exists'] = 'false'
 
         return render(request, 'fabrics.html', {'fabrics': list(fabrics)})
-    
-@csrf_exempt
-def volumes(request):
-    if request.method == 'POST':
-        data = json.loads(request.POST['data'])
-        # Update existing records and add new ones
-        for row in data:
-            if row['id']:  # If there's an ID, update the record
-                Volume.objects.filter(id=row['id']).update(name=row['name'], stg_type=row['stg_type'], size=row['size'], unit=row['unit'], capacity_savings=row['capacity_savings'])
-            else:  # If there's no ID, create a new record
-                volume = Volume(name=row['name'], stg_type=row['stg_type'], size=row['size'], unit=row['unit'], capacity_savings=row['capacity_savings'])
-                volume.save()
-                data[data.index(row)]['id'] = volume.id  # Update the data with the newly created alias's ID
-        volumes_to_keep = [row['id'] for row in data if row['id']]
-        volumes_to_delete = Volume.objects.exclude(id__in=volumes_to_keep)
-        volumes_to_delete.delete()
-        return JsonResponse({'status': 'success'})
-    else:
-        # For GET requests, we just send all the records to the template
-        volumes = Volume.objects.values()
-        return render(request, 'volumes.html', {'volumes': list(volumes)})
-    
-@csrf_exempt
-def zones(request):
-    if request.method == 'POST':
-        pass
-        # data = json.loads(request.POST['data'])
-        # # Update existing records and add new ones
-        # for row in data:
-        #     fabric = Fabric.objects.get(id=row['fabric'])
-        #     if row['id']:  # If there's an ID, update the record
-        #         SANAlias.objects.filter(id=row['id']).update(alias_name=row['alias_name'], WWPN=row['WWPN'], use=row['use'], fabric=fabric, exists=row['exists'])
-        #     else:  # If there's no ID, create a new record
-        #         san_alias = SANAlias(alias_name=row['alias_name'], WWPN=row['WWPN'], use=row['use'], fabric=fabric, exists=row['exists'])
-        #         san_alias.save()
-        #         data[data.index(row)]['id'] = san_alias.id  # Update the data with the newly created alias's ID
-        # aliases_to_keep = [row['id'] for row in data if row['id']]
-        # aliases_to_delete = SANAlias.objects.exclude(id__in=aliases_to_keep)
-        # aliases_to_delete.delete()
-        # return JsonResponse({'status': 'success'})
-    else:
-        zones = Zone.objects.prefetch_related('member_list')
-        data = [
-            {
-                'id': zone.id,
-                'name': zone.name,
-                'fabric': zone.fabric,
-                'zone_type': zone.zone_type,
-                'exists': zone.exists,
-                'member_list': [member.alias_name for member in zone.member_list.all()]
-            }
-            for zone in zones
-        ]
-        return render(request, 'zones.html', {'data': data})
 
 
 def create_aliases(request):
-    all_aliases = SANAlias.objects.filter(create='True')
     config = Config.objects.first()
+    all_aliases = SANAlias.objects.filter(create='True', customer=config.customer)
+    print(all_aliases)
     alias_command_dict = defaultdict(list)
     for alias in all_aliases:
         key = alias.fabric.name
@@ -175,20 +122,3 @@ def create_aliases(request):
     sorted_dict = dict(sorted(alias_command_dict.items()))
     context = {'alias_command_dict': sorted_dict}
     return render(request, 'create_aliases.html', context)
-
-
-
-# def create_alias_command_dict(port_dict):
-#     alias_command_dict = defaultdict(list)
-#     for fabric, port_list in port_dict.items():
-#         for port in port_list:
-#             if port.exists == False:
-#                 if san_vendor == 'Brocade':
-#                     alias_command_dict[port.fabric].append(f'alicreate "{port.alias}", "{wwpn_colonizer(port.wwpn)}"')
-#                 elif san_vendor == 'Cisco':
-#                     if alias_type == 'device-alias': 
-#                         alias_command_dict[port.fabric].append(f'device-alias name {port.alias} pwwn {wwpn_colonizer(port.wwpn)}')
-#                     elif alias_type == 'fcalias':
-#                         alias_command_dict[port.fabric].append(f'fcalias name {port.alias} vsan {port.fabric.vsan}')
-#                         alias_command_dict[port.fabric].append(f'member pwwn {wwpn_colonizer(port.wwpn)}')
-#     return dict(alias_command_dict)
