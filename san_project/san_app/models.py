@@ -17,16 +17,21 @@ class Customer(models.Model):
     
 
 class Fabric(models.Model):
+    customer = models.ForeignKey(Customer, related_name='fabric_customer',
+                        on_delete=models.CASCADE)    
     name = models.CharField(max_length=64)
     zoneset_name = models.CharField(max_length=200)
     vsan = models.IntegerField(blank=True, null=True)
     exists = models.CharField(max_length=5, choices=TRUE_FALSE)
 
     def __str__(self):
-        return self.name
+        return f'{self.customer}: {self.name}'
+    
+    class Meta:
+        unique_together = ['customer', 'name']
 
 
-class SANAlias(models.Model):
+class Alias(models.Model):
     customer = models.ForeignKey(Customer, related_name='alias_customer',
                         on_delete=models.CASCADE)
     fabric = models.ForeignKey(Fabric, on_delete=models.CASCADE,blank=True, null=True)
@@ -35,14 +40,14 @@ class SANAlias(models.Model):
         ('target', 'Target'),
         ('both', 'Both'),
     ]
-    alias_name = models.CharField(max_length=100, unique=False)
-    WWPN = models.CharField(max_length=23, unique=True)
+    name = models.CharField(max_length=100, unique=False)
+    wwpn = models.CharField(max_length=23, unique=True)
     use = models.CharField(max_length=6, choices=USE_CHOICES, null=True, blank=True)
     create = models.CharField(max_length=5, choices=TRUE_FALSE, default='False')
     include_in_zoning = models.CharField(max_length=5, choices=TRUE_FALSE, default='False')
 
     def __str__(self):
-        return self.alias_name
+        return f'{self.customer}: {self.name}'
     
 
 class Config(models.Model):

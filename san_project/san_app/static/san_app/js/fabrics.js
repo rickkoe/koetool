@@ -4,7 +4,7 @@ $.ajaxSetup({
 
 var fabricTable;
 var fabricSelectOptions = [];
-var fabricData = []
+var fabricData = [];
 
 function getTextWidth(text) {
     var canvas = document.createElement('canvas');
@@ -12,13 +12,10 @@ function getTextWidth(text) {
     context.font = '12px Arial'; // Customize the font and size as needed
     var metrics = context.measureText(text);
     return metrics.width;
-  }
-  
-  
+}
 
 $(document).ready(function() {
     var container = document.getElementById('fabricTable');
-
 
     // Check if data array is empty and add an empty row if necessary
     if (typeof data === 'undefined' || data.length === 0) {
@@ -38,7 +35,6 @@ $(document).ready(function() {
                     value: fabricData[i].id,
                 });
             }
-
             fabricTable = new Handsontable(container, {
                 licenseKey: 'non-commercial-and-evaluation',
                 data: data,
@@ -48,33 +44,30 @@ $(document).ready(function() {
                 colHeaders: ["ID", "Name", "Active Zoneset", "VSAN", "Exists"],
                 contextMenu: ['row_above', 'row_below', 'remove_row', '---------', 'undo', 'redo'],  // Custom context menu options
                 minSpareRows: 1,  // Always leave one spare row at the end
-                    // Enable column resizing
+                // Enable column resizing
                 manualColumnResize: true,
                 // Disable ID column
                 cells: function(row, col, prop) {
                     if (col === 0) {
-                        return {readOnly: true};
+                        return { readOnly: true };
                     }
                 },
                 columns: [
                     { data: 'id', readOnly: true },
                     { data: 'name' },
                     { data: 'zoneset_name' },
-                    { data: 'vsan'},
-                    { 
+                    { data: 'vsan' },
+                    {
                         type: 'dropdown',
                         editor: 'select',
-                        selectOptions: ['True','False'],
+                        selectOptions: ['True', 'False'],
                         data: 'exists'
                     }
-
                 ],
-               
             });
         }
     });
 });
-
 
 $('#submit-fabric-data').click(function() {
     var data = fabricTable.getData().map(function(row) {
@@ -90,7 +83,6 @@ $('#submit-fabric-data').click(function() {
     });
 
     // Filter out any undefined entries (rows that didn't pass the check)
-
     data = data.filter(function(entry) { return entry !== undefined; });
 
     $.ajax({
@@ -100,9 +92,16 @@ $('#submit-fabric-data').click(function() {
             'data': JSON.stringify(data),
             'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
         },
-        success: function() {
-            location.reload();
+        success: function(response) {
+            if (response.status === 'success') {
+                location.reload();  // Refresh the page on successful submission
+            } else if (response.status === 'error') {
+                alert(response.errors.join('\n'));  // Display the error message to the user
+            }
         },
+        error: function(xhr, errmsg, err) {
+            console.log('Error:', errmsg);
+        }
     });
 });
 

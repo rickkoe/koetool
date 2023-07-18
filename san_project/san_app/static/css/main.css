@@ -21,3 +21,8 @@ code {
     top: 10px;
     right: 10px;
 }
+
+.active-customer {
+    background-color: #f8f9fa; /* Set the background color */
+    font-weight: bold; /* Set the font weight */
+}

@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from .models import SANAlias
+from .models import Alias
 
 class SANAliasSerializer(serializers.ModelSerializer):
     class Meta:
-        model = SANAlias
+        model = Alias
         fields = '__all__'

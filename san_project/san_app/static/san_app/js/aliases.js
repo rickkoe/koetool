@@ -57,7 +57,7 @@ $(document).ready(function() {
 
                 // when selection reaches the edge of the grid's viewport, scroll the viewport
                 dragToScroll: true,
-                colHeaders: ["ID", "Alias Name", "WWPN", "Use", "Fabric", "Create", "Zone"],
+                colHeaders: ["ID", "Alias Name", "wwpn", "Use", "Fabric", "Create", "Zone"],
                 contextMenu: ['row_above', 'row_below', 'remove_row', '---------', 'undo', 'redo'],  // Custom context menu options
                 minSpareRows: 1,  // Always leave one spare row at the end
                     // Enable column resizing
@@ -70,8 +70,8 @@ $(document).ready(function() {
                 },
                 columns: [
                     { data: 'id', readOnly: true },
-                    { data: 'alias_name' },
-                    { data: 'WWPN' },
+                    { data: 'name' },
+                    { data: 'wwpn' },
                     { 
                         type: 'dropdown',
                         // editor: 'select',
@@ -118,13 +118,13 @@ $(document).ready(function() {
 
                 beforeChange: function(changes) {
                     changes.forEach(function(change) {
-                        if (change[1] === 'WWPN') {  // If the change is in the 'WWPN' column
+                        if (change[1] === 'wwpn') {  // If the change is in the 'wwpn' column
                             var newValue = change[3];
                             if (/^[0-9a-fA-F]{16}$/.test(newValue)) {  // If it's 16 hexadecimal characters without colons
                                 change[3] = newValue.replace(/(.{2})(?=.)/g, '$1:');  // Insert colons
                             } else if (!/^([0-9a-fA-F]{2}:){7}[0-9a-fA-F]{2}$/.test(newValue)) {  // If it's not 16 hexadecimal characters with colons
                                 change[3] = null;  // Discard the change
-                                alert('Invalid WWPN format!');
+                                alert('Invalid wwpn format!');
                             }
                         }
                     });
@@ -176,8 +176,8 @@ $('#submit-data').click(function() {
             console.log(row)
             return {
                 id: row[0],
-                alias_name: row[1],
-                WWPN: row[2],
+                name: row[1],
+                wwpn: row[2],
                 use: row[3],
                 fabric: row[4],
                 create: row[5],

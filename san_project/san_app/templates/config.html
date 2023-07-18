@@ -7,7 +7,7 @@
 {% block content %}
 
 <h1>Config Options</h1>
-<form method="POST" action="">
+<form id="config-form" method="POST" action="">
   {% csrf_token %}
   
   {{ form.customer.errors }}
@@ -41,24 +41,42 @@
       {{ form.zone_ratio }}
   </div>
 
-  <button type="submit" class="btn btn-dark">Save</button>
+  <!-- Remove the Save button -->
 </form>
 
-
-
 {% endblock %}
+
 {% block extra_js %}
 <script>
   $(document).ready(function() {
       var ciscoFieldsContainer = $('#cisco-fields-container');
+      var configForm = $('#config-form');
+
       var sanVendorValue = $('#id_san_vendor').val();
       if (sanVendorValue !== 'CI') {
           ciscoFieldsContainer.hide();
       }
-  
+
+      // Submit the form via AJAX when any input value changes
+      configForm.find(':input').on('input', function() {
+          $.ajax({
+              type: 'POST',
+              url: configForm.attr('action'),
+              data: configForm.serialize(), // Serialize the form data
+              success: function(response) {
+                  // Handle the success response, if needed
+                  console.log('Form data saved successfully.');
+              },
+              error: function(xhr, errmsg, err) {
+                  // Handle the error, if needed
+                  console.log('Form data failed to save.');
+              }
+          });
+      });
+
       $('#id_san_vendor').on('input', function() {
           var updatedValue = $(this).val();
-  
+
           if (updatedValue === 'CI') {
               ciscoFieldsContainer.show();
           } else {
@@ -66,6 +84,5 @@
           }
       });
   });
-  </script>
-  
+</script>
 {% endblock %}
