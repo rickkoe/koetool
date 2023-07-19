@@ -27,7 +27,7 @@
                 <a class="nav-item nav-link {% if request.resolver_match.url_name == 'fabrics' %}active{% endif %}" href="{% url 'fabrics' %}">Fabrics</a>
                 <a class="nav-item nav-link {% if request.resolver_match.url_name == 'aliases' %}active{% endif %}" href="{% url 'aliases' %}">Aliases</a>
             </div>
-            <div class="navbar-nav ml-auto">
+            <div id="active-customer-placeholder" class="navbar-nav ml-auto">
                 {% if active_customer %}
                     <a class="nav-item nav-link active-customer">Active Customer: {{ active_customer.name }}</a>
                 {% else %}

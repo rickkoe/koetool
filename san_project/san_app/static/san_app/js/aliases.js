@@ -44,7 +44,6 @@ $(document).ready(function() {
             for (var i = 0; i < fabricData.length; i++) {
                 fabricSelectOptions.push({
                     label: fabricData[i].name,
-                    value: fabricData[i].id,
                 });
             }
 
@@ -78,7 +77,7 @@ $(document).ready(function() {
                         source: ['init', 'target', 'both'],
                         data: 'use' },
                     {
-                        data: 'fabric_id',
+                        data: 'fabric__name',
                         type: 'dropdown',
                         source: function(query, process) {
                           process(fabricSelectOptions.map(function(fabric) {
@@ -87,10 +86,10 @@ $(document).ready(function() {
                         },
                         renderer: function(instance, td, row, col, prop, value, cellProperties) {
                           Handsontable.renderers.TextRenderer.apply(this, arguments);
-                          if (prop === "fabric_id" && value !== null){
+                          if (prop === "fabric__name" && value !== null){
                             var fabric = fabricSelectOptions.find(function(fabric) {
                             //   console.log(td, row, prop, value)
-                              return fabric.value === value;
+                              return fabric.label === value;
                             });
                             if (fabric) {
                               td.innerHTML = fabric.label;
@@ -130,7 +129,7 @@ $(document).ready(function() {
                     });
                 },
                 afterBeginEditing: function(row, col, prop, value, cellProperties) {
-                    if (prop === 'fabric_id') {
+                    if (prop === 'fabric__name') {
                       var fabric = fabricSelectOptions.find(function(option) {
                         return option.value === value;
                       });
@@ -140,25 +139,28 @@ $(document).ready(function() {
                       }
                     }
                   },                  
-                afterChange: function(changes, source) {
+                  afterChange: function(changes, source) {
                     if (source === 'edit') {
                         changes.forEach(function(change) {
                             var row = change[0];
                             var prop = change[1];
                             var value = change[3];
-                
-                            if (prop === 'fabric_id') {
-                                var fabric = fabricSelectOptions.find(function(option) {
+                            console.log(value)
+                            if (prop === 'fabric__name') {
+                                var fabricOption = fabricSelectOptions.find(function(option) {
                                     return option.label === value;
                                 });
                 
-                                if (fabric) {
-                                    data[row].fabric_id = fabric.value;
+                                if (fabricOption) {
+                                    // Assign the fabric ID to the 'fabric__name' property
+                                    data[row].fabric__name = fabricOption.label;
+                                    data[row].fabric = fabricOption.value; // Assign the fabric name to the 'fabric' property
                                 }
                             }
                         });
                     }
                 },
+                
                 
                 
             });
@@ -173,7 +175,6 @@ $('#submit-data').click(function() {
     aliasTable.render();
     var data = aliasTable.getData().map(function(row) {
         if (row[1] || row[2] || row[3] || row[4]) {  // Only send rows that have at least one of these fields filled
-            console.log(row)
             return {
                 id: row[0],
                 name: row[1],

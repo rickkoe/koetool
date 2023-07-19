@@ -15,7 +15,6 @@ from django.db.models import Q
 # from .scripts import create_port_dict, create_alias_command_dict
 
 
-
 def index(request):
     return render(request, 'index.html')
 
@@ -43,18 +42,17 @@ def config(request):
     
 @csrf_exempt
 def aliases(request):
+    config = Config.objects.first()
     if request.method == 'POST':
         data = json.loads(request.POST['data'])
             # Update existing records and add new ones
         for row in data:
-            print(row)
             for i in row:
-                print(row[i])
                 if i != 'id' and row[i] == None:
-                    print('yup')
                     row[i] = 'False'
             print(row)
-            fabric = Fabric.objects.get(id=row['fabric'])
+            fabric = Fabric.objects.get(name=row['fabric'], customer=config.customer)
+            print(f'FABRIC: {fabric.name}')
             if row['id']:  # If there's an ID, update the record
                 Alias.objects.filter(id=row['id']).update(customer=config.customer, name=row['name'], wwpn=row['wwpn'], use=row['use'], fabric=fabric, create=row['create'], include_in_zoning=row['include_in_zoning'])
             else:  # If there's no ID, create a new record
@@ -68,8 +66,8 @@ def aliases(request):
         return JsonResponse({'status': 'success'})
     else:
         # For GET requests, we just send all the records to the template
-        config = Config.objects.first()
-        aliases = Alias.objects.values().filter(customer=config.customer)
+
+        aliases = Alias.objects.values('id','name','wwpn','use','fabric__name','create','include_in_zoning').filter(customer=config.customer)
         return render(request, 'aliases.html', {'aliases': list(aliases)})
     
 
