@@ -3,16 +3,16 @@
 {% load static %}
 
 {% block content %}
-  <h1>Alias List</h1>
+  <h1>Zone List</h1>
   <div>
     <button id="submit-data" class="btn btn-primary">Save Changes</button>
     <button onclick="location.href='{% url 'create_aliases' %}'" type="button" class="btn btn-primary">
-      Create Alias Commands
+      Create Zone Commands
     </button>
   </div>
 
   <div id="hotcontainer" onscroll="scrollFunction()">
-    <div id="aliasTable"></div>
+    <div id="zoneTable"></div>
     <!-- Floating button -->
     <button onclick="topFunction()" class="floating-button" id="topBtn" title="Go to top">Top</button>
   </div>
@@ -39,10 +39,10 @@
       hotcontainer.scrollTo(0, 0);
     }
   </script>
-  <script src="{% static 'san_app/js/aliases.js' %}" type="module"></script>
+  <script src="{% static 'san_app/js/zones.js' %}" type="module"></script>
 
   <script>
-    var data = {{ aliases|safe }};
+    var data = {{ zones|safe }};
   </script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 {% endblock %}

@@ -11,7 +11,7 @@ $.ajaxSetup({
     headers: { "X-CSRFToken": getCookie("csrftoken") }
 });
 
-var aliasTable;
+var zoneTable;
 var fabricSelectOptions = [];
 var fabricData = []
 
@@ -26,7 +26,7 @@ function getTextWidth(text) {
   
 
 $(document).ready(function() {
-    var container = document.getElementById('aliasTable');
+    var container = document.getElementById('zoneTable');
 
 
     // Check if data array is empty and add an empty row if necessary
@@ -47,7 +47,7 @@ $(document).ready(function() {
                 });
             }
 
-            aliasTable = new Handsontable(container, {
+            zoneTable = new Handsontable(container, {
                 licenseKey: 'non-commercial-and-evaluation',
                 data: data,
                 minRows: 1,
@@ -59,7 +59,7 @@ $(document).ready(function() {
 
                 // when selection reaches the edge of the grid's viewport, scroll the viewport
                 dragToScroll: true,
-                colHeaders: ["ID", "Alias Name", "wwpn", "Use", "Fabric", "Create", "Zone"],
+                colHeaders: ["ID", "Zone Name", "Fabric", "Zone Type", "Create", "Exists"],
                 contextMenu: ['row_above', 'row_below', 'remove_row', '---------', 'undo', 'redo'],  // Custom context menu options
                 minSpareRows: 1,  // Always leave one spare row at the end
                     // Enable column resizing
@@ -73,12 +73,6 @@ $(document).ready(function() {
                 columns: [
                     { data: 'id', readOnly: true },
                     { data: 'name' },
-                    { data: 'wwpn' },
-                    { 
-                        type: 'dropdown',
-                        // editor: 'select',
-                        source: ['init', 'target', 'both'],
-                        data: 'use' },
                     {
                         data: 'fabric__name',
                         type: 'dropdown',
@@ -101,13 +95,18 @@ $(document).ready(function() {
                         },
                         trimDropdown: false
                     },
+                    { 
+                        type: 'dropdown',
+                        // editor: 'select',
+                        source: ['smart', 'standard'],
+                        data: 'zone_type' },
                     {
                         data: 'create',
                         type: "checkbox",
                         className: "htCenter"
                       },
                       {
-                        data: 'include_in_zoning',
+                        data: 'exists',
                         type: "checkbox",
                         className: "htCenter"
                       },
@@ -138,7 +137,7 @@ $(document).ready(function() {
                       });
                   
                       if (fabric) {
-                        aliasTable.setDataAtCell(row, col, fabric.label);
+                        zoneTable.setDataAtCell(row, col, fabric.label);
                       }
                     }
                   },                  
@@ -173,19 +172,18 @@ $(document).ready(function() {
 
 
 $('#submit-data').click(function() {
-    aliasTable.getPlugin('Filters').clearConditions();
-    aliasTable.getPlugin('Filters').filter();
-    aliasTable.render();
-    var data = aliasTable.getData().map(function(row) {
+    zoneTable.getPlugin('Filters').clearConditions();
+    zoneTable.getPlugin('Filters').filter();
+    zoneTable.render();
+    var data = zoneTable.getData().map(function(row) {
         if (row[1] || row[2] || row[3] || row[4]) {  // Only send rows that have at least one of these fields filled
             return {
                 id: row[0],
                 name: row[1],
-                wwpn: row[2],
-                use: row[3],
-                fabric: row[4],
-                create: row[5],
-                include_in_zoning: row[6]
+                fabric: row[2],
+                zone_type: row[3],
+                create: row[4],
+                exists: row[5]
             };
         }
     });
@@ -223,6 +221,6 @@ function getCookie(name) {
 
 // When the user clicks on the button, scroll to the top of the Handsontable
 function topFunction() {
-    aliasTable.scrollViewportTo(0, 0);
+    zoneTable.scrollViewportTo(0, 0);
     }  
 }

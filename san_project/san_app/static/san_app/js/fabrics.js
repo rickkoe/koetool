@@ -57,11 +57,10 @@ $(document).ready(function() {
                     { data: 'name' },
                     { data: 'zoneset_name' },
                     { data: 'vsan' },
-                    {
-                        type: 'dropdown',
-                        editor: 'select',
-                        selectOptions: ['True', 'False'],
-                        data: 'exists'
+                    { 
+                        data: 'exists',
+                        type: 'checkbox',
+                        className: "htCenter"
                     }
                 ],
             });

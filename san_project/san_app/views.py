@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework import viewsets
 from .serializers import SANAliasSerializer
-from .models import Alias, Fabric, Config
+from .models import Alias, Fabric, Config, Zone
 from .forms import ConfigForm
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -22,7 +22,7 @@ def index(request):
 def fabrics_data(request):
     config = Config.objects.first()
     fabrics = Fabric.objects.filter(customer=config.customer)
-    data = [{'id': fabric.id, 'name': fabric.name, 'vsan': fabric.vsan} for fabric in fabrics]
+    data = [{'id': fabric.id, 'name': fabric.name, 'vsan': fabric.vsan, 'exists': fabric.exists} for fabric in fabrics]
     return JsonResponse(data, safe=False)
     
 
@@ -47,6 +47,14 @@ def aliases(request):
         data = json.loads(request.POST['data'])
             # Update existing records and add new ones
         for row in data:
+            for field_name, field_value in row.items():
+                if field_value == "true":
+                    print(field_value)
+                    row[field_name] = True
+                elif field_value == "false":
+                    row[field_name] = False
+                elif field_name == 'exists' and field_value == None:
+                    row[field_name] = False
             for i in row:
                 if i != 'id' and row[i] == None:
                     row[i] = 'False'
@@ -68,6 +76,11 @@ def aliases(request):
         # For GET requests, we just send all the records to the template
 
         aliases = Alias.objects.values('id','name','wwpn','use','fabric__name','create','include_in_zoning').filter(customer=config.customer)
+                # Convert boolean fields to lowercase in each fabric dictionary
+        for alias in aliases:
+            for field_name, field_value in alias.items():
+                if isinstance(field_value, bool):
+                    alias[field_name] = str(field_value).lower()
         return render(request, 'aliases.html', {'aliases': list(aliases)})
     
 
@@ -80,6 +93,16 @@ def fabrics(request):
         # Validation and error handling
         errors = []
         for row in data:
+            for field_name, field_value in row.items():
+                if field_value == "true":
+                    print(field_value)
+                    row[field_name] = True
+                elif field_value == "false":
+                    row[field_name] = False
+                elif field_name == 'exists' and field_value == None:
+                    row[field_name] = False
+                if field_name == 'vsan' and field_value == None:
+                    row[field_name] = 1
             if row and row['name']:
                 existing_fabric = Fabric.objects.filter(customer=config.customer, name=row['name']).exclude(id=row.get('id'))
                 if existing_fabric.exists():
@@ -90,7 +113,6 @@ def fabrics(request):
         
         for row in data:
             if row and row['id']:  # If there's an ID, update the record
-                # print(row)
                 Fabric.objects.filter(id=row['id']).update(customer=config.customer, name=row['name'], zoneset_name=row['zoneset_name'], vsan=row['vsan'], exists=row['exists'])
             else:  # If there's no ID, create a new record
                 fabric = Fabric(customer=config.customer, name=row['name'], zoneset_name=row['zoneset_name'], vsan=row['vsan'], exists=row['exists'])
@@ -104,13 +126,59 @@ def fabrics(request):
     else:
         config = Config.objects.first()
         fabrics = Fabric.objects.values().filter(customer=config.customer)
-        # Convert boolean values to lowercase false
-        for fabric in fabrics:
-            if fabric['exists'] is False:
-                fabric['exists'] = 'false'
 
+        # Convert boolean fields to lowercase in each fabric dictionary
+        for fabric in fabrics:
+            for field_name, field_value in fabric.items():
+                if isinstance(field_value, bool):
+                    fabric[field_name] = str(field_value).lower()
+        print(list(fabrics))
         return render(request, 'fabrics.html', {'fabrics': list(fabrics)})
 
+
+@csrf_exempt
+def zones(request):
+    config = Config.objects.first()
+    if request.method == 'POST':
+        data = json.loads(request.POST['data'])
+            # Update existing records and add new ones
+        for row in data:
+            for field_name, field_value in row.items():
+                if field_value == "true":
+                    print(field_value)
+                    row[field_name] = True
+                elif field_value == "false":
+                    row[field_name] = False
+                elif field_name == 'exists' and field_value == None:
+                    row[field_name] = False
+            for i in row:
+                if i != 'id' and row[i] == None:
+                    row[i] = 'False'
+            print(row)
+            fabric = Fabric.objects.get(name=row['fabric'], customer=config.customer)
+            print(f'FABRIC: {fabric.name}')
+            if row['id']:  # If there's an ID, update the record
+                Zone.objects.filter(id=row['id']).update(name=row['name'], fabric=fabric, zone_type=row['zone_type'], create=row['create'], exists=row['exists'])
+            else:  # If there's no ID, create a new record
+                zone = Zone(name=row['name'], fabric=fabric, zone_type=row['zone_type'], create=row['create'], exists=row['exists'])
+                zone.save()
+                data[data.index(row)]['id'] = zone.id  # Update the data with the newly created alias's ID
+        zones_non_active_customer = Zone.objects.exclude(fabric__customer=config.customer)
+        zones_to_keep = [row['id'] for row in data if row['id']]
+        zones_to_delete = Zone.objects.exclude(Q(id__in=zones_to_keep) | Q(id__in=zones_non_active_customer))
+        zones_to_delete.delete()
+        return JsonResponse({'status': 'success'})
+    else:
+        # For GET requests, we just send all the records to the template
+
+        zones = Zone.objects.values('id','name','fabric__name','zone_type','create','exists').filter(fabric__customer=config.customer)
+                # Convert boolean fields to lowercase in each fabric dictionary
+        for zone in zones:
+            for field_name, field_value in zone.items():
+                if isinstance(field_value, bool):
+                    zone[field_name] = str(field_value).lower()
+                print(field_name, field_value)
+        return render(request, 'zones.html', {'zones': list(zones)})
 
 def create_aliases(request):
     config = Config.objects.first()

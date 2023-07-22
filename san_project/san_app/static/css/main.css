@@ -26,3 +26,27 @@ code {
     background-color: #f8f9fa; /* Set the background color */
     font-weight: bold; /* Set the font weight */
 }
+
+    #hotcontainer {
+        height: 600px; /* Your fixed height here */
+        overflow: auto;
+        position: relative;
+        scroll-behavior: smooth;
+    }
+
+    /* Style for the floating button */
+    .floating-button {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 10px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      
+      #topBtn:hover {
+        background-color: #555; /* Add a dark-grey background on hover */
+      }
