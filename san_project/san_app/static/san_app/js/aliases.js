@@ -59,7 +59,7 @@ $(document).ready(function() {
 
                 // when selection reaches the edge of the grid's viewport, scroll the viewport
                 dragToScroll: true,
-                colHeaders: ["ID", "Alias Name", "wwpn", "Use", "Fabric", "Create", "Zone"],
+                colHeaders: ["ID", "Alias Name", "wwpn", "Use", "Fabric", "Storage", "Create", "Zone"],
                 contextMenu: ['row_above', 'row_below', 'remove_row', '---------', 'undo', 'redo'],  // Custom context menu options
                 minSpareRows: 1,  // Always leave one spare row at the end
                     // Enable column resizing
@@ -101,6 +101,7 @@ $(document).ready(function() {
                         },
                         trimDropdown: false
                     },
+                    { data: 'storage__name'},
                     {
                         data: 'create',
                         type: "checkbox",
@@ -184,8 +185,9 @@ $('#submit-data').click(function() {
                 wwpn: row[2],
                 use: row[3],
                 fabric: row[4],
-                create: row[5],
-                include_in_zoning: row[6]
+                storage: row[5],
+                create: row[6],
+                include_in_zoning: row[7]
             };
         }
     });

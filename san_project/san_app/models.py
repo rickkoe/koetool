@@ -26,10 +26,22 @@ class Fabric(models.Model):
         unique_together = ['customer', 'name']
 
 
+class Storage(models.Model):
+    name = models.CharField(max_length=64)
+    customer = models.ForeignKey(Customer, related_name='storage_customer',
+                    on_delete=models.CASCADE) 
+    storage_type = models.CharField(max_length=20, choices=[('FS', 'FlashSystem'), ('DS8', 'DS8000')])
+    def __str__(self):
+        return f'{self.customer}: {self.name}' 
+    
+    class Meta:
+        unique_together = ['customer', 'name']
+
 class Alias(models.Model):
     customer = models.ForeignKey(Customer, related_name='alias_customer',
                         on_delete=models.CASCADE)
     fabric = models.ForeignKey(Fabric, on_delete=models.CASCADE,blank=True, null=True)
+    storage = models.ForeignKey(Storage, on_delete=models.CASCADE, related_name='alias_storage')
     USE_CHOICES = [
         ('init', 'Initiator'),
         ('target', 'Target'),
@@ -44,8 +56,10 @@ class Alias(models.Model):
     def __str__(self):
         return f'{self.customer}: {self.name}'
 
-class Zone(models.Model):
-    fabric = models.ForeignKey(Fabric, on_delete=models.CASCADE,blank=True, null=True)
+
+class ZoneGroup(models.Model):
+    fabric = models.ForeignKey(Fabric, on_delete=models.CASCADE)
+    storage = models.ForeignKey(Storage, on_delete=models.CASCADE)
     name = models.CharField(max_length=100, unique=False)
     create = models.BooleanField(default=False)
     zone_type = models.CharField(max_length=100,choices=[
@@ -57,7 +71,6 @@ class Zone(models.Model):
     def __str__(self):
         return f'{self.fabric.customer}: {self.name}'
     
-
 
 class Config(models.Model):
     customer = models.ForeignKey(Customer, related_name='active_customer',

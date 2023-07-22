@@ -7,6 +7,6 @@ urlpatterns = [
     path('aliases/', views.aliases, name='aliases'),
     path('fabrics_data/', views.fabrics_data, name='fabrics_data'),
     path('fabrics/', views.fabrics, name='fabrics'),
-    path('zones/', views.zones, name='zones'),
+    path('zone-groups/', views.zone_groups, name='zone_groups'),
     path('create-aliases/', views.create_aliases, name='create_aliases'),
 ]

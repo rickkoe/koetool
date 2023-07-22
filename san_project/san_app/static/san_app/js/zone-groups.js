@@ -59,7 +59,7 @@ $(document).ready(function() {
 
                 // when selection reaches the edge of the grid's viewport, scroll the viewport
                 dragToScroll: true,
-                colHeaders: ["ID", "Zone Name", "Fabric", "Zone Type", "Create", "Exists"],
+                colHeaders: ["ID", "Zone Group Name", "Fabric", "Storage", "Zone Type", "Create", "Exists"],
                 contextMenu: ['row_above', 'row_below', 'remove_row', '---------', 'undo', 'redo'],  // Custom context menu options
                 minSpareRows: 1,  // Always leave one spare row at the end
                     // Enable column resizing
@@ -94,6 +94,28 @@ $(document).ready(function() {
                           }
                         },
                         trimDropdown: false
+                    },
+                    {
+                        data: 'storage__name',
+                        // type: 'dropdown',
+                        // source: function(query, process) {
+                        //   process(storageSelectOptions.map(function(storage) {
+                        //     return storage.label;
+                        //   }));
+                        // },
+                        // renderer: function(instance, td, row, col, prop, value, cellProperties) {
+                        //   Handsontable.renderers.TextRenderer.apply(this, arguments);
+                        //   if (prop === "storage__name" && value !== null){
+                        //     var storage = storageSelectOptions.find(function(storage) {
+                        //     //   console.log(td, row, prop, value)
+                        //       return storage.label === value;
+                        //     });
+                        //     if (storage) {
+                        //       td.innerHTML = storage.label;
+                        //     }
+                        //   }
+                        // },
+                        // trimDropdown: false
                     },
                     { 
                         type: 'dropdown',
@@ -181,9 +203,10 @@ $('#submit-data').click(function() {
                 id: row[0],
                 name: row[1],
                 fabric: row[2],
-                zone_type: row[3],
-                create: row[4],
-                exists: row[5]
+                storage: row[3],
+                zone_type: row[4],
+                create: row[5],
+                exists: row[6]
             };
         }
     });

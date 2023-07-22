@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework import viewsets
 from .serializers import SANAliasSerializer
-from .models import Alias, Fabric, Config, Zone
+from .models import Alias, Fabric, Config, ZoneGroup, Storage
 from .forms import ConfigForm
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -60,11 +60,11 @@ def aliases(request):
                     row[i] = 'False'
             print(row)
             fabric = Fabric.objects.get(name=row['fabric'], customer=config.customer)
-            print(f'FABRIC: {fabric.name}')
+            storage = Storage.objects.get(name=row['storage'], customer=config.customer)
             if row['id']:  # If there's an ID, update the record
-                Alias.objects.filter(id=row['id']).update(customer=config.customer, name=row['name'], wwpn=row['wwpn'], use=row['use'], fabric=fabric, create=row['create'], include_in_zoning=row['include_in_zoning'])
+                Alias.objects.filter(id=row['id']).update(customer=config.customer, name=row['name'], wwpn=row['wwpn'], use=row['use'], fabric=fabric, storage=storage, create=row['create'], include_in_zoning=row['include_in_zoning'])
             else:  # If there's no ID, create a new record
-                san_alias = Alias(customer=config.customer,name=row['name'], wwpn=row['wwpn'], use=row['use'], fabric=fabric, create=row['create'], include_in_zoning=row['include_in_zoning'])
+                san_alias = Alias(customer=config.customer,name=row['name'], wwpn=row['wwpn'], use=row['use'], fabric=fabric, storage=storage, create=row['create'], include_in_zoning=row['include_in_zoning'])
                 san_alias.save()
                 data[data.index(row)]['id'] = san_alias.id  # Update the data with the newly created alias's ID
         aliases_non_active_customer = Alias.objects.exclude(customer=config.customer)
@@ -75,7 +75,7 @@ def aliases(request):
     else:
         # For GET requests, we just send all the records to the template
 
-        aliases = Alias.objects.values('id','name','wwpn','use','fabric__name','create','include_in_zoning').filter(customer=config.customer)
+        aliases = Alias.objects.values('id','name','wwpn','use','fabric__name','storage__name','create','include_in_zoning').filter(customer=config.customer)
                 # Convert boolean fields to lowercase in each fabric dictionary
         for alias in aliases:
             for field_name, field_value in alias.items():
@@ -137,7 +137,7 @@ def fabrics(request):
 
 
 @csrf_exempt
-def zones(request):
+def zone_groups(request):
     config = Config.objects.first()
     if request.method == 'POST':
         data = json.loads(request.POST['data'])
@@ -156,29 +156,29 @@ def zones(request):
                     row[i] = 'False'
             print(row)
             fabric = Fabric.objects.get(name=row['fabric'], customer=config.customer)
-            print(f'FABRIC: {fabric.name}')
+            storage = Storage.objects.get(name=row['storage'], customer=config.customer)
             if row['id']:  # If there's an ID, update the record
-                Zone.objects.filter(id=row['id']).update(name=row['name'], fabric=fabric, zone_type=row['zone_type'], create=row['create'], exists=row['exists'])
+                ZoneGroup.objects.filter(id=row['id']).update(name=row['name'], fabric=fabric, storage=storage, zone_type=row['zone_type'], create=row['create'], exists=row['exists'])
             else:  # If there's no ID, create a new record
-                zone = Zone(name=row['name'], fabric=fabric, zone_type=row['zone_type'], create=row['create'], exists=row['exists'])
-                zone.save()
-                data[data.index(row)]['id'] = zone.id  # Update the data with the newly created alias's ID
-        zones_non_active_customer = Zone.objects.exclude(fabric__customer=config.customer)
+                zone_group = ZoneGroup(name=row['name'], fabric=fabric, storage=storage, zone_type=row['zone_type'], create=row['create'], exists=row['exists'])
+                zone_group.save()
+                data[data.index(row)]['id'] = zone_group.id  # Update the data with the newly created alias's ID
+        zones_non_active_customer = ZoneGroup.objects.exclude(fabric__customer=config.customer)
         zones_to_keep = [row['id'] for row in data if row['id']]
-        zones_to_delete = Zone.objects.exclude(Q(id__in=zones_to_keep) | Q(id__in=zones_non_active_customer))
+        zones_to_delete = ZoneGroup.objects.exclude(Q(id__in=zones_to_keep) | Q(id__in=zones_non_active_customer))
         zones_to_delete.delete()
         return JsonResponse({'status': 'success'})
     else:
         # For GET requests, we just send all the records to the template
 
-        zones = Zone.objects.values('id','name','fabric__name','zone_type','create','exists').filter(fabric__customer=config.customer)
+        zone_groups = ZoneGroup.objects.values('id','name','fabric__name', 'storage__name', 'zone_type','create','exists').filter(fabric__customer=config.customer)
                 # Convert boolean fields to lowercase in each fabric dictionary
-        for zone in zones:
-            for field_name, field_value in zone.items():
+        for zone_group in zone_groups:
+            for field_name, field_value in zone_group.items():
                 if isinstance(field_value, bool):
-                    zone[field_name] = str(field_value).lower()
+                    zone_group[field_name] = str(field_value).lower()
                 print(field_name, field_value)
-        return render(request, 'zones.html', {'zones': list(zones)})
+        return render(request, 'zone-groups.html', {'zone_groups': list(zone_groups)})
 
 def create_aliases(request):
     config = Config.objects.first()
