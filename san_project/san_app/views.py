@@ -12,6 +12,7 @@ from django.views.decorators.csrf import csrf_exempt  # To exempt this view from
 import json  # To parse and generate JSON
 from collections import defaultdict
 from django.db.models import Q
+from django.core.exceptions import ObjectDoesNotExist
 # from .scripts import create_port_dict, create_alias_command_dict
 
 
@@ -47,24 +48,51 @@ def aliases(request):
         data = json.loads(request.POST['data'])
             # Update existing records and add new ones
         for row in data:
+            print(row)
             for field_name, field_value in row.items():
                 if field_value == "true":
-                    print(field_value)
                     row[field_name] = True
                 elif field_value == "false":
                     row[field_name] = False
                 elif field_name == 'exists' and field_value == None:
                     row[field_name] = False
             for i in row:
-                if i != 'id' and row[i] == None:
+                if i != 'id' and i!= 'storage' and row[i] == None:
                     row[i] = 'False'
-            print(row)
-            fabric = Fabric.objects.get(name=row['fabric'], customer=config.customer)
-            storage = Storage.objects.get(name=row['storage'], customer=config.customer)
+            fabric_name = row['fabric']
+            try:
+                fabric = Fabric.objects.get(name=fabric_name, customer=config.customer)
+            except ObjectDoesNotExist:
+                fabric = None  # or handle missing fabric as needed
+            if row['storage']:
+                storage_name = row['storage']
+                try:
+                    storage = Storage.objects.get(name=storage_name, customer=config.customer)
+                except ObjectDoesNotExist:
+                    storage = None  # or handle missing storage as needed
+            else:
+                storage = None
             if row['id']:  # If there's an ID, update the record
-                Alias.objects.filter(id=row['id']).update(customer=config.customer, name=row['name'], wwpn=row['wwpn'], use=row['use'], fabric=fabric, storage=storage, create=row['create'], include_in_zoning=row['include_in_zoning'])
+                Alias.objects.filter(id=row['id']).update(
+                    customer=config.customer,
+                    name=row['name'],
+                    wwpn=row['wwpn'],
+                    use=row['use'],
+                    fabric=fabric,
+                    storage=storage,
+                    create=row['create'],
+                    include_in_zoning=row['include_in_zoning']
+                )
             else:  # If there's no ID, create a new record
-                san_alias = Alias(customer=config.customer,name=row['name'], wwpn=row['wwpn'], use=row['use'], fabric=fabric, storage=storage, create=row['create'], include_in_zoning=row['include_in_zoning'])
+                san_alias = Alias(
+                    customer=config.customer,
+                    name=row['name'],
+                    wwpn=row['wwpn'],
+                    use=row['use'],
+                    fabric=fabric,
+                    storage=storage,
+                    create=row['create'],
+                    include_in_zoning=row['include_in_zoning'])
                 san_alias.save()
                 data[data.index(row)]['id'] = san_alias.id  # Update the data with the newly created alias's ID
         aliases_non_active_customer = Alias.objects.exclude(customer=config.customer)
@@ -81,8 +109,50 @@ def aliases(request):
             for field_name, field_value in alias.items():
                 if isinstance(field_value, bool):
                     alias[field_name] = str(field_value).lower()
+                    # Convert Python None to JSON null
+                if field_value is None:
+                        alias[field_name] = 'null'
+            
         return render(request, 'aliases.html', {'aliases': list(aliases)})
-    
+
+
+@csrf_exempt
+def storage(request):
+    config = Config.objects.first()
+    if request.method == 'POST':
+        data = json.loads(request.POST['data'])
+        for row in data:
+            if row['id']:  # If there's an ID, update the record
+                Storage.objects.filter(id=row['id']).update(
+                    customer=config.customer,
+                    name=row['name'],
+                    storage_type=row['storage_type'],
+                    location=row['location']
+                )
+            else:  # If there's no ID, create a new record
+                storage = Storage(
+                    customer=config.customer,
+                    name=row['name'],
+                    storage_type=row['storage_type'],
+                    location=row['location']
+                )
+                storage.save()
+                data[data.index(row)]['id'] = storage.id  # Update the data with the newly created alias's ID
+        storage_non_active_customer = Storage.objects.exclude(customer=config.customer)
+        storage_to_keep = [row['id'] for row in data if row['id']]
+        storage_to_delete = Storage.objects.exclude(Q(id__in=storage_to_keep) | Q(id__in=storage_non_active_customer))
+        storage_to_delete.delete()
+        return JsonResponse({'status': 'success'})
+    else:
+        storage = Storage.objects.values('id','name','storage_type','location').filter(customer=config.customer)
+        for i in storage:
+            for field_name, field_value in i.items():
+                if isinstance(field_value, bool):
+                    i[field_name] = str(field_value).lower()
+                    # Convert Python None to JSON null
+                if field_value is None:
+                        i[field_name] = ''          
+        return render(request, 'storage.html', {'storage': list(storage)})
 
 @csrf_exempt
 def fabrics(request):

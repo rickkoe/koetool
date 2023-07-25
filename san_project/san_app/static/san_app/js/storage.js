@@ -2,7 +2,7 @@ $.ajaxSetup({
     headers: { "X-CSRFToken": getCookie("csrftoken") }
 });
 
-var aliasTable;
+var storageTable;
 var fabricSelectOptions = [];
 var fabricData = []
 
@@ -17,7 +17,7 @@ function getTextWidth(text) {
   
 
 $(document).ready(function() {
-    var container = document.getElementById('aliasTable');
+    var container = document.getElementById('storageTable');
 
 
     // Check if data array is empty and add an empty row if necessary
@@ -38,11 +38,11 @@ $(document).ready(function() {
                 });
             }
 
-            aliasTable = new Handsontable(container, {
+            storageTable = new Handsontable(container, {
                 licenseKey: 'non-commercial-and-evaluation',
                 data: data,
                 minRows: 1,
-                minCols: 6,
+                minCols: 4,
                 rowHeaders: false,
                 width: '100%',
                 height: 600,
@@ -50,7 +50,7 @@ $(document).ready(function() {
 
                 // when selection reaches the edge of the grid's viewport, scroll the viewport
                 dragToScroll: true,
-                colHeaders: ["ID", "Alias Name", "wwpn", "Use", "Fabric", "Storage", "Create", "Zone"],
+                colHeaders: ["ID", "Storage Name", "Storage Type", "Location"],
                 contextMenu: ['row_above', 'row_below', 'remove_row', '---------', 'undo', 'redo'],  // Custom context menu options
                 minSpareRows: 1,  // Always leave one spare row at the end
                     // Enable column resizing
@@ -64,45 +64,13 @@ $(document).ready(function() {
                 columns: [
                     { data: 'id', readOnly: true },
                     { data: 'name' },
-                    { data: 'wwpn' },
                     { 
                         type: 'dropdown',
                         // editor: 'select',
-                        source: ['init', 'target', 'both'],
-                        data: 'use' },
-                    {
-                        data: 'fabric__name',
-                        type: 'dropdown',
-                        source: function(query, process) {
-                          process(fabricSelectOptions.map(function(fabric) {
-                            return fabric.label;
-                          }));
-                        },
-                        renderer: function(instance, td, row, col, prop, value, cellProperties) {
-                          Handsontable.renderers.TextRenderer.apply(this, arguments);
-                          if (prop === "fabric__name" && value !== null){
-                            var fabric = fabricSelectOptions.find(function(fabric) {
-                            //   console.log(td, row, prop, value)
-                              return fabric.label === value;
-                            });
-                            if (fabric) {
-                              td.innerHTML = fabric.label;
-                            }
-                          }
-                        },
-                        trimDropdown: false
-                    },
-                    { data: 'storage__name'},
-                    {
-                        data: 'create',
-                        type: "checkbox",
-                        className: "htCenter"
-                      },
-                      {
-                        data: 'include_in_zoning',
-                        type: "checkbox",
-                        className: "htCenter"
-                      },
+                        source: ['DS8000', 'FlashSystem'],
+                        data: 'storage_type' },
+                    { data: 'location' }
+                
         
 
                       
@@ -130,7 +98,7 @@ $(document).ready(function() {
                       });
                   
                       if (fabric) {
-                        aliasTable.setDataAtCell(row, col, fabric.label);
+                        storageTable.setDataAtCell(row, col, fabric.label);
                       }
                     }
                   },                  
@@ -165,21 +133,17 @@ $(document).ready(function() {
 
 
 $('#submit-data').click(function() {
-    aliasTable.getPlugin('Filters').clearConditions();
-    aliasTable.getPlugin('Filters').filter();
-    aliasTable.render();
-    var data = aliasTable.getData().map(function(row) {
+    storageTable.getPlugin('Filters').clearConditions();
+    storageTable.getPlugin('Filters').filter();
+    storageTable.render();
+    var data = storageTable.getData().map(function(row) {
         console.log(row);
         if (row[1] || row[2] || row[3] || row[4]) {  // Only send rows that have at least one of these fields filled
             return {
                 id: row[0],
                 name: row[1],
-                wwpn: row[2],
-                use: row[3],
-                fabric: row[4],
-                storage: row[5],
-                create: row[6],
-                include_in_zoning: row[7]
+                storage_type: row[2],
+                location: row[3]
             };
         }
     });
@@ -217,6 +181,6 @@ function getCookie(name) {
 
 // When the user clicks on the button, scroll to the top of the Handsontable
 function topFunction() {
-    aliasTable.scrollViewportTo(0, 0);
+    storageTable.scrollViewportTo(0, 0);
     }  
 }

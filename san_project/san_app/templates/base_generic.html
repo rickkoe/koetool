@@ -27,6 +27,7 @@
                 <a class="nav-item nav-link {% if request.resolver_match.url_name == 'fabrics' %}active{% endif %}" href="{% url 'fabrics' %}">Fabrics</a>
                 <a class="nav-item nav-link {% if request.resolver_match.url_name == 'aliases' %}active{% endif %}" href="{% url 'aliases' %}">Aliases</a>
                 <a class="nav-item nav-link {% if request.resolver_match.url_name == 'zones_groups' %}active{% endif %}" href="{% url 'zone_groups' %}">Zone Groups</a>
+                <a class="nav-item nav-link {% if request.resolver_match.url_name == 'storage' %}active{% endif %}" href="{% url 'storage' %}">Storage</a>
             </div>
             <div id="active-customer-placeholder" class="navbar-nav ml-auto">
                 {% if active_customer %}

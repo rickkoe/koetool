@@ -40,6 +40,11 @@
       <label for="{{ form.zone_ratio.id_for_label }}">Zone Ratio:</label>
       {{ form.zone_ratio }}
   </div>
+  {{ form.smartzone_prefix.errors }}
+  <div class="form-group">
+      <label for="{{ form.smartzone_prefix.id_for_label }}">Smart Zone Prefix:</label>
+      {{ form.smartzone_prefix }}
+  </div>
 
   <!-- Remove the Save button -->
 </form>

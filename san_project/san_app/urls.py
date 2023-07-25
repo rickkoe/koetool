@@ -9,4 +9,5 @@ urlpatterns = [
     path('fabrics/', views.fabrics, name='fabrics'),
     path('zone-groups/', views.zone_groups, name='zone_groups'),
     path('create-aliases/', views.create_aliases, name='create_aliases'),
+    path('storage/', views.storage, name='storage'),
 ]
