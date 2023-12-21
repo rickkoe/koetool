@@ -39,9 +39,7 @@ class Storage(models.Model):
         unique_together = ['customer', 'name']
 
 class Alias(models.Model):
-    customer = models.ForeignKey(Customer, related_name='alias_customer',
-                        on_delete=models.CASCADE)
-    fabric = models.ForeignKey(Fabric, on_delete=models.CASCADE,blank=True, null=True)
+    fabric = models.ForeignKey(Fabric, on_delete=models.CASCADE)
     storage = models.ForeignKey(Storage, on_delete=models.CASCADE, related_name='alias_storage', null=True, blank=True)
     USE_CHOICES = [
         ('init', 'Initiator'),
@@ -58,7 +56,7 @@ class Alias(models.Model):
         ordering = ['name']
     
     def __str__(self):
-        return f'{self.customer}: {self.name}'
+        return f'{self.fabric.customer}: {self.name}'
 
 
 class ZoneGroup(models.Model):
@@ -75,7 +73,30 @@ class ZoneGroup(models.Model):
 
     def __str__(self):
         return f'{self.fabric.customer}: {self.name}'
-    
+
+
+class Zone(models.Model):
+    fabric = models.ForeignKey(Fabric, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100, unique=False)
+    create = models.BooleanField(default=False)
+    exists = models.BooleanField(default=False)
+    zone_type = models.CharField(max_length=100,choices=[
+        ('smart', 'smart'),
+        ('standard', 'standard'),
+    ])
+
+    def __str__(self):
+        return f'{self.fabric.customer}: {self.name}'
+
+class ZoneMember(models.Model):
+    zone = models.ForeignKey(Zone, on_delete=models.CASCADE, related_name='members')
+    alias = models.ForeignKey('Alias', on_delete=models.CASCADE)  # ForeignKey to Alias
+
+    def __str__(self):
+        return f'{self.zone.fabric.customer}: {self.zone.name}:  {self.alias.name}'  # Optional, for representation
+
+    class Meta:
+        unique_together = ('zone', 'alias')  # Ensure uniqueness of Zone-Alias pairs
 
 class Config(models.Model):
     customer = models.ForeignKey(Customer, related_name='active_customer',

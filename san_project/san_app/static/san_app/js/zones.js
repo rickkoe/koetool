@@ -3,7 +3,7 @@ $.ajaxSetup({
     headers: { "X-CSRFToken": getCookie("csrftoken") }
 });
 
-let aliasTable;
+let zoneTable;
 const fabricSelectOptions = [];
 const fabricData = []
 
@@ -18,7 +18,7 @@ function getTextWidth(text) {
   
 
 $(document).ready(function() {
-    let container = document.getElementById('aliasTable');
+    let container = document.getElementById('zoneTable');
     // Check if data array is empty and add an empty row if necessary
     if (typeof data === 'undefined' || data.length === 0) {
         data = [[]];
@@ -36,7 +36,7 @@ $(document).ready(function() {
                 });
             }
 
-            aliasTable = new Handsontable(container, {
+            zoneTable = new Handsontable(container, {
                 licenseKey: 'non-commercial-and-evaluation',
                 data: data,
                 minRows: 1,
@@ -48,7 +48,7 @@ $(document).ready(function() {
 
                 // when selection reaches the edge of the grid's viewport, scroll the viewport
                 dragToScroll: true,
-                colHeaders: ["ID", "Alias Name", "wwpn", "Use", "Fabric", "Storage", "Create", "Zone"],
+                colHeaders: ["ID", "zone Name", "wwpn", "Use", "Fabric", "Storage", "Create", "Zone"],
                 contextMenu: ['row_above', 'row_below', 'remove_row', '---------', 'undo', 'redo'],  // Custom context menu options
                 minSpareRows: 1,  // Always leave one spare row at the end
                     // Enable column resizing
@@ -128,7 +128,7 @@ $(document).ready(function() {
                       });
                   
                       if (fabric) {
-                        aliasTable.setDataAtCell(row, col, fabric.label);
+                        zoneTable.setDataAtCell(row, col, fabric.label);
                       }
                     }
                   },                  
@@ -163,10 +163,10 @@ $(document).ready(function() {
 
 
 $('#submit-data').click(function() {
-    aliasTable.getPlugin('Filters').clearConditions();
-    aliasTable.getPlugin('Filters').filter();
-    aliasTable.render();
-    let data = aliasTable.getData().map(function(row) {
+    zoneTable.getPlugin('Filters').clearConditions();
+    zoneTable.getPlugin('Filters').filter();
+    zoneTable.render();
+    let data = zoneTable.getData().map(function(row) {
         console.log(row);
         if (row[1] || row[2] || row[3] || row[4]) {  // Only send rows that have at least one of these fields filled
             return {
@@ -215,6 +215,6 @@ function getCookie(name) {
 
 // When the user clicks on the button, scroll to the top of the Handsontable
 function topFunction() {
-    aliasTable.scrollViewportTo(0, 0);
+    zoneTable.scrollViewportTo(0, 0);
     }  
 }
