@@ -32,6 +32,7 @@ class Storage(models.Model):
                     on_delete=models.CASCADE) 
     storage_type = models.CharField(max_length=20, choices=[('FlashSystem', 'FlashSystem'), ('DS8000', 'DS8000')])
     location = models.CharField(max_length=100, blank=True, null=True)
+    
     def __str__(self):
         return f'{self.customer}: {self.name}' 
     
@@ -51,6 +52,10 @@ class Alias(models.Model):
     use = models.CharField(max_length=6, choices=USE_CHOICES, null=True, blank=True)
     create = models.BooleanField(default=False)
     include_in_zoning = models.BooleanField(default=False)
+
+    @property
+    def customer(self):
+        return self.fabric.customer if self.fabric else None
     
     class Meta:
         ordering = ['name']
@@ -84,6 +89,10 @@ class Zone(models.Model):
         ('smart', 'smart'),
         ('standard', 'standard'),
     ])
+
+    @property
+    def customer(self):
+        return self.fabric.customer
 
     def __str__(self):
         return f'{self.fabric.customer}: {self.name}'

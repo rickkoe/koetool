@@ -103,7 +103,7 @@ def aliases(request):
     else:
         # For GET requests, we just send all the records to the template
 
-        aliases = Alias.objects.values('id','name','wwpn','use','fabric__name','storage__name','create','include_in_zoning').filter(customer=config.customer)
+        aliases = Alias.objects.values('id','name','wwpn','use','fabric__name','storage__name','create','include_in_zoning').filter(fabric__customer=config.customer)
                 # Convert boolean fields to lowercase in each fabric dictionary
         for alias in aliases:
             for field_name, field_value in alias.items():
