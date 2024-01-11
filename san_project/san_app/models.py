@@ -48,7 +48,7 @@ class Alias(models.Model):
         ('both', 'Both'),
     ]
     name = models.CharField(max_length=100, unique=False)
-    wwpn = models.CharField(max_length=23, unique=True)
+    wwpn = models.CharField(max_length=23)
     use = models.CharField(max_length=6, choices=USE_CHOICES, null=True, blank=True)
     create = models.BooleanField(default=False)
     include_in_zoning = models.BooleanField(default=False)
@@ -59,6 +59,7 @@ class Alias(models.Model):
     
     class Meta:
         ordering = ['name']
+        unique_together = ['fabric', 'wwpn']
     
     def __str__(self):
         return f'{self.fabric.customer}: {self.name}'

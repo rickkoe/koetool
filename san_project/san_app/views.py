@@ -74,7 +74,6 @@ def aliases(request):
                 storage = None
             if row['id']:  # If there's an ID, update the record
                 Alias.objects.filter(id=row['id']).update(
-                    customer=config.customer,
                     name=row['name'],
                     wwpn=row['wwpn'],
                     use=row['use'],
@@ -85,7 +84,6 @@ def aliases(request):
                 )
             else:  # If there's no ID, create a new record
                 san_alias = Alias(
-                    customer=config.customer,
                     name=row['name'],
                     wwpn=row['wwpn'],
                     use=row['use'],
@@ -95,7 +93,7 @@ def aliases(request):
                     include_in_zoning=row['include_in_zoning'])
                 san_alias.save()
                 data[data.index(row)]['id'] = san_alias.id  # Update the data with the newly created alias's ID
-        aliases_non_active_customer = Alias.objects.exclude(customer=config.customer)
+        aliases_non_active_customer = Alias.objects.exclude(fabric__customer=config.customer)
         aliases_to_keep = [row['id'] for row in data if row['id']]
         aliases_to_delete = Alias.objects.exclude(Q(id__in=aliases_to_keep) | Q(id__in=aliases_non_active_customer))
         aliases_to_delete.delete()
@@ -288,17 +286,17 @@ def zones(request):
         zones = Zone.objects.values('id','name','fabric__name','create','exists','zone_type').filter(fabric__customer=config.customer)
                 # Convert boolean fields to lowercase in each fabric dictionary
         for zone in zones:
+            # print(zone['name'])
             for field_name, field_value in zone.items():
                 if isinstance(field_value, bool):
                     zone[field_name] = str(field_value).lower()
-                print(field_name, field_value)
+                # print(field_name, field_value)
         return render(request, 'zones.html', {'zones': list(zones)})
     
 
 def create_aliases(request):
     config = Config.objects.first()
-    all_aliases = Alias.objects.filter(create='True', customer=config.customer)
-    print(all_aliases)
+    all_aliases = Alias.objects.filter(create='True', fabric__customer=config.customer)
     alias_command_dict = defaultdict(list)
     for alias in all_aliases:
         key = alias.fabric.name
