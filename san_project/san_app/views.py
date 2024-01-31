@@ -6,7 +6,7 @@ from .forms import ConfigForm
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.http import JsonResponse  # To send JSON response
 from django.views.decorators.csrf import csrf_exempt  # To exempt this view from CSRF protection
 import json  # To parse and generate JSON
@@ -25,7 +25,12 @@ def fabrics_data(request):
     fabrics = Fabric.objects.filter(customer=config.customer)
     data = [{'id': fabric.id, 'name': fabric.name, 'vsan': fabric.vsan, 'exists': fabric.exists} for fabric in fabrics]
     return JsonResponse(data, safe=False)
-    
+
+def alias_data(request):
+    config = Config.objects.first()
+    aliases = Alias.objects.filter(fabric__customer=config.customer)
+    data = [{'id': alias.id, 'name': alias.name, 'fabric': alias.fabric.name, 'use': alias.use, 'create': alias.create, 'include_in_zoning': alias.include_in_zoning} for alias in aliases]
+    return JsonResponse(data, safe=False)   
 
 def config(request):
     config_instance, created = Config.objects.get_or_create(pk=1)  # Get or create a single instance
@@ -257,7 +262,6 @@ def zones(request):
         for row in data:
             for field_name, field_value in row.items():
                 if field_value == "true":
-                    print(field_value)
                     row[field_name] = True
                 elif field_value == "false":
                     row[field_name] = False
@@ -266,15 +270,33 @@ def zones(request):
             for i in row:
                 if i != 'id' and row[i] == None:
                     row[i] = 'False'
-            print(row)
             fabric = Fabric.objects.get(name=row['fabric'], customer=config.customer)
-            storage = Storage.objects.get(name=row['storage'], customer=config.customer)
             if row['id']:  # If there's an ID, update the record
-                ZoneGroup.objects.filter(id=row['id']).update(name=row['name'], fabric=fabric, storage=storage, zone_type=row['zone_type'], create=row['create'], exists=row['exists'])
+                zone = Zone.objects.get(id=row['id'])
+                zone.name = row['name']
+                zone.fabric = fabric
+                zone.zone_type = row['zone_type']
+                zone.create = row['create']
+                zone.exists = row['exists']
+                zone.save()
+                if row['member1']:
+                    with transaction.atomic():
+                #         # Check if ZoneMember already exists for the current Zone and Alias
+                        print(zone, row['member1'])
+                        alias = Alias.objects.get(name=row['member1'])
+                        if not ZoneMember.objects.filter(zone=zone, alias=alias).exists():
+                #             # Create new ZoneMember
+                            ZoneMember.objects.create(zone=zone, alias=alias)
             else:  # If there's no ID, create a new record
-                zone_group = ZoneGroup(name=row['name'], fabric=fabric, storage=storage, zone_type=row['zone_type'], create=row['create'], exists=row['exists'])
-                zone_group.save()
-                data[data.index(row)]['id'] = zone_group.id  # Update the data with the newly created alias's ID
+                zone = Zone(
+                    name=row['name'],
+                    fabric=fabric,
+                    zone_type=row['zone_type'],
+                    create=row['create'],
+                    exists=row['exists']
+                    )
+                zone.save()
+                data[data.index(row)]['id'] = zone.id  # Update the data with the newly created alias's ID
         zones_non_active_customer = ZoneGroup.objects.exclude(fabric__customer=config.customer)
         zones_to_keep = [row['id'] for row in data if row['id']]
         zones_to_delete = ZoneGroup.objects.exclude(Q(id__in=zones_to_keep) | Q(id__in=zones_non_active_customer))
