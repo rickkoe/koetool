@@ -252,6 +252,7 @@ def zones(request):
     config = Config.objects.first()
     if request.method == 'POST':
         data = json.loads(request.POST['data'])
+        print(data)
             # Update existing records and add new ones
         for row in data:
             for field_name, field_value in row.items():
@@ -267,16 +268,27 @@ def zones(request):
             fabric = Fabric.objects.get(name=row['fabric'], customer=config.customer)
             if row['id']:  # If there's an ID, update the record
                 zone = Zone.objects.get(id=row['id'])
+                zone.members.clear()
                 zone.name = row['name']
                 zone.fabric = fabric
                 zone.zone_type = row['zone_type']
                 zone.create = row['create']
                 zone.exists = row['exists']
                 zone.save()
-                for i in range(1,20):
-                    if 'member' + str(i) in row:
-                        zone.members.add(Alias.objects.get(name=row['member'+ str(i)]))
+                members = row['members']
+                if members:
+                    for member in members:
+                        if member:
+                            print(member)
+                            zone.members.add(Alias.objects.get(name=member))  # Adjusted to use f-string for dynamic member access
+                    zone.save()
+                for i in range(0, 19):
+                    # print(row[f'members[{i}]'])
+                    if f'members[{i}]' in row:
+                        # print('hello')
+                        zone.members.add(Alias.objects.get(name=row[f'member{i}']))  # Adjusted to use f-string for dynamic member access
                         zone.save()
+
             else:  # If there's no ID, create a new record
                 zone = Zone(
                     name=row['name'],
@@ -319,7 +331,6 @@ def zones(request):
         
         # Append the dictionary to the zone_data list
         zone_data.append(zone_dict)
-    print(zone_data)
     # Pass the list of dictionaries to the template
     return render(request, 'zones.html', {'zones': zone_data})
 

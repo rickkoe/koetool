@@ -106,41 +106,6 @@ $(document).ready(function () {
     }
 
 
-
-
-
-
-    // Add member columns dynamically
-    // for (let i = 1; i <= 20; i++) {
-    //     // Add data and checkbox columns together
-    //     columns.push({
-    //         data: `members${i}`,
-    //         type: 'dropdown',
-    //         source: function (query, process) {
-    //             process(aliasSelectOptions.map(function (alias) {
-    //                 return alias.label;
-    //                 console.log(alias.label);
-    //             }));
-    //         },
-    //         renderer: function (instance, td, row, col, prop, value, cellProperties) {
-    //             Handsontable.renderers.TextRenderer.apply(this, arguments);
-    //             // if (prop === "member1"){
-    //             //     console.log(prop, value);
-    //             // };
-    //             // console.log(prop);
-    //             if (prop === "alias__name" && value !== null) {
-    //                 let alias = aliasSelectOptions.find(function (alias) {
-    //                     return alias.label === value;
-    //                 });
-    //                 if (alias) {
-    //                     td.innerHTML = alias.label;
-    //                 }
-    //             }
-    //         },
-    //         trimDropdown: false
-    //     });
-    // }
-
     // Add the columns to the Handsontable configuration
     zoneTable = new Handsontable(container, {
         licenseKey: 'non-commercial-and-evaluation',
@@ -186,6 +151,9 @@ $(document).ready(function () {
                         if (fabricOption) {
                             data[row].fabric__name = fabricOption.label;
                             data[row].fabric = fabricOption.value;
+                        } else if (prop.startsWith('members.')) {
+                            const index = parseInt(prop.split('.')[1]) - 1;
+                            data[row].members[index] = newValue;
                         }
                     }
                 });
@@ -208,19 +176,21 @@ $(document).ready(function () {
                     exists: row[5],
                     members: []
                 };
-
+    
                 // Extract members data from the appropriate cells
                 for (let i = 1; i <= 20; i++) {
-                    if (row[5 + i]) {
-                        rowData.members.push(row[5 + i]); // Push members data into the members array
+                    const memberIndex = 5 + i;
+                    const memberValue = row[memberIndex]; 
+                    if (memberValue !== undefined) {
+                        rowData.members.push(memberValue);
                     }
                 }
                 return rowData;
             }
         });
-
+    
         data = data.filter(function (entry) { return entry !== undefined; });
-
+    
         $.ajax({
             type: 'POST',
             url: '',
@@ -233,4 +203,5 @@ $(document).ready(function () {
             },
         });
     });
+    
 });
