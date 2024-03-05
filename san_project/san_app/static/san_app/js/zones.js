@@ -6,6 +6,22 @@ const aliasSelectOptions = [];
 const fabricData = [];
 const aliasData = [];
 
+// Define a function to get used aliases for the entire table
+function getUsedAliasesForTable(data) {
+    let usedAliases = new Set();
+    data.forEach(function (row) {
+        for (let i = 0; i <= 20; i++) {
+            const memberIndex = 5 + i;
+            const memberValue = row.members[i];
+            // console.log(memberValue);
+            if (memberValue !== undefined && memberValue !== null && memberValue !== '') {
+                usedAliases.add(memberValue);
+            }
+        }
+    });
+    return usedAliases;
+}
+
 $(document).ready(function () {
     let container = document.getElementById('zoneTable');
 
@@ -94,8 +110,10 @@ $(document).ready(function () {
                 source: function (query, process) {
                     let rowData = this.instance.getDataAtRowProp(this.row, 'fabric__name');
                     let fabricName = rowData; // Assuming 'fabric__name' is the key for fabric in your row data
+                    let usedAliases = getUsedAliasesForTable(data);
+                    let usedAliasesArray = Array.from(usedAliases);
                     let filteredOptions = aliasSelectOptions.filter(function (alias) {
-                        return alias.fabric === fabricName;
+                        return alias.fabric === fabricName && !usedAliases.has(alias.label);
                     });
                     process(filteredOptions.map(function (alias) {
                         return alias.label;
