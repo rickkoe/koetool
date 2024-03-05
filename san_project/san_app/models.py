@@ -90,6 +90,7 @@ class Zone(models.Model):
         ('smart', 'smart'),
         ('standard', 'standard'),
     ])
+    members = models.ManyToManyField(Alias)
 
     @property
     def customer(self):
@@ -98,15 +99,15 @@ class Zone(models.Model):
     def __str__(self):
         return f'{self.fabric.customer}: {self.name}'
 
-class ZoneMember(models.Model):
-    zone = models.ForeignKey(Zone, on_delete=models.CASCADE, related_name='members')
-    alias = models.ForeignKey('Alias', on_delete=models.CASCADE)  # ForeignKey to Alias
+# class ZoneMember(models.Model):
+#     zone = models.ForeignKey(Zone, on_delete=models.CASCADE, related_name='members')
+#     alias = models.ForeignKey('Alias', on_delete=models.CASCADE)  # ForeignKey to Alias
 
-    def __str__(self):
-        return f'{self.zone.fabric.customer}: {self.zone.name}:  {self.alias.name}'  # Optional, for representation
+#     def __str__(self):
+#         return f'{self.zone.fabric.customer}: {self.zone.name}:  {self.alias.name}'  # Optional, for representation
 
-    class Meta:
-        unique_together = ('zone', 'alias')  # Ensure uniqueness of Zone-Alias pairs
+#     class Meta:
+#         unique_together = ('zone', 'alias')  # Ensure uniqueness of Zone-Alias pairs
 
 class Config(models.Model):
     customer = models.ForeignKey(Customer, related_name='active_customer',

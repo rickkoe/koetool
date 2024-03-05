@@ -7,16 +7,6 @@ let aliasTable;
 const fabricSelectOptions = [];
 const fabricData = []
 
-function getTextWidth(text) {
-    let canvas = document.createElement('canvas');
-    let context = canvas.getContext('2d');
-    context.font = '12px Arial'; // Customize the font and size as needed
-    let metrics = context.measureText(text);
-    return metrics.width;
-  }
-  
-  
-
 $(document).ready(function() {
     let container = document.getElementById('aliasTable');
     // Check if data array is empty and add an empty row if necessary

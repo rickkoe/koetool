@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework import viewsets
 from .serializers import SANAliasSerializer
-from .models import Alias, Fabric, Config, ZoneGroup, Storage, Zone, ZoneMember
+from .models import Alias, Fabric, Config, ZoneGroup, Storage, Zone
 from .forms import ConfigForm
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -53,7 +53,6 @@ def aliases(request):
         data = json.loads(request.POST['data'])
             # Update existing records and add new ones
         for row in data:
-            print(row)
             for field_name, field_value in row.items():
                 if field_value == "true":
                     row[field_name] = True
@@ -168,7 +167,6 @@ def fabrics(request):
         for row in data:
             for field_name, field_value in row.items():
                 if field_value == "true":
-                    print(field_value)
                     row[field_name] = True
                 elif field_value == "false":
                     row[field_name] = False
@@ -205,7 +203,6 @@ def fabrics(request):
             for field_name, field_value in fabric.items():
                 if isinstance(field_value, bool):
                     fabric[field_name] = str(field_value).lower()
-        print(list(fabrics))
         return render(request, 'fabrics.html', {'fabrics': list(fabrics)})
 
 
@@ -218,7 +215,6 @@ def zone_groups(request):
         for row in data:
             for field_name, field_value in row.items():
                 if field_value == "true":
-                    print(field_value)
                     row[field_name] = True
                 elif field_value == "false":
                     row[field_name] = False
@@ -227,7 +223,6 @@ def zone_groups(request):
             for i in row:
                 if i != 'id' and row[i] == None:
                     row[i] = 'False'
-            print(row)
             fabric = Fabric.objects.get(name=row['fabric'], customer=config.customer)
             storage = Storage.objects.get(name=row['storage'], customer=config.customer)
             if row['id']:  # If there's an ID, update the record
@@ -250,7 +245,6 @@ def zone_groups(request):
             for field_name, field_value in zone_group.items():
                 if isinstance(field_value, bool):
                     zone_group[field_name] = str(field_value).lower()
-                print(field_name, field_value)
         return render(request, 'zone-groups.html', {'zone_groups': list(zone_groups)})
 
 @csrf_exempt
@@ -279,14 +273,10 @@ def zones(request):
                 zone.create = row['create']
                 zone.exists = row['exists']
                 zone.save()
-                if row['member1']:
-                    with transaction.atomic():
-                #         # Check if ZoneMember already exists for the current Zone and Alias
-                        print(zone, row['member1'])
-                        alias = Alias.objects.get(name=row['member1'])
-                        if not ZoneMember.objects.filter(zone=zone, alias=alias).exists():
-                #             # Create new ZoneMember
-                            ZoneMember.objects.create(zone=zone, alias=alias)
+                for i in range(1,20):
+                    if 'member' + str(i) in row:
+                        zone.members.add(Alias.objects.get(name=row['member'+ str(i)]))
+                        zone.save()
             else:  # If there's no ID, create a new record
                 zone = Zone(
                     name=row['name'],
@@ -296,6 +286,10 @@ def zones(request):
                     exists=row['exists']
                     )
                 zone.save()
+                for i in range(1,20):
+                    if 'member' + str(i) in row:
+                        zone.members.add(Alias.objects.get(name=row['member'+ str(i)]))
+                        zone.save()
                 data[data.index(row)]['id'] = zone.id  # Update the data with the newly created alias's ID
         zones_non_active_customer = ZoneGroup.objects.exclude(fabric__customer=config.customer)
         zones_to_keep = [row['id'] for row in data if row['id']]
@@ -305,15 +299,30 @@ def zones(request):
     else:
         # For GET requests, we just send all the records to the template
 
-        zones = Zone.objects.values('id','name','fabric__name','create','exists','zone_type').filter(fabric__customer=config.customer)
+        zones = Zone.objects.select_related('fabric').prefetch_related('members').filter(fabric__customer=config.customer).order_by('id')
                 # Convert boolean fields to lowercase in each fabric dictionary
-        for zone in zones:
-            # print(zone['name'])
-            for field_name, field_value in zone.items():
-                if isinstance(field_value, bool):
-                    zone[field_name] = str(field_value).lower()
-                # print(field_name, field_value)
-        return render(request, 'zones.html', {'zones': list(zones)})
+    # Create a list to store dictionary representations of Zone objects
+    zone_data = []
+
+    # Iterate over each Zone object in the queryset
+    for zone in zones:
+        # Create a dictionary to represent the Zone object
+        zone_dict = {
+            'id': zone.id,
+            'name': zone.name,
+            'fabric__name': zone.fabric.name,
+            'create': str(zone.create).lower(),
+            'exists': str(zone.exists).lower(),
+            'zone_type': zone.zone_type,
+            'members': [member.name for member in zone.members.all()]  # Assuming members is a related field
+        }
+        
+        # Append the dictionary to the zone_data list
+        zone_data.append(zone_dict)
+    print(zone_data)
+    # Pass the list of dictionaries to the template
+    return render(request, 'zones.html', {'zones': zone_data})
+
     
 
 def create_aliases(request):
