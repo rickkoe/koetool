@@ -87,18 +87,24 @@ $(document).ready(function () {
     ];
 
     for (let i = 1; i <= 20; i++) {
-        columns.push({
-            data: `members.${i - 1}`,
-            type: 'dropdown',
-            source: function (query, process) {
-                process(aliasSelectOptions.map(function (alias) {
-                    return alias.label;
-                }));
-            },
-            trimDropdown: false,
-        });
+        (function (i) {
+            columns.push({
+                data: `members.${i - 1}`,
+                type: 'dropdown',
+                source: function (query, process) {
+                    let rowData = this.instance.getDataAtRowProp(this.row, 'fabric__name');
+                    let fabricName = rowData; // Assuming 'fabric__name' is the key for fabric in your row data
+                    let filteredOptions = aliasSelectOptions.filter(function (alias) {
+                        return alias.fabric === fabricName;
+                    });
+                    process(filteredOptions.map(function (alias) {
+                        return alias.label;
+                    }));
+                },
+                trimDropdown: false,
+            });
+        })(i);
     }
-
 
     // Add the columns to the Handsontable configuration
     zoneTable = new Handsontable(container, {
