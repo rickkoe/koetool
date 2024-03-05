@@ -252,7 +252,10 @@ def zones(request):
     config = Config.objects.first()
     if request.method == 'POST':
         data = json.loads(request.POST['data'])
-        print(data)
+        max_uses = json.loads(request.POST['max_uses'])
+        config.alias_max_zones = max_uses
+        config.save()
+        
             # Update existing records and add new ones
         for row in data:
             for field_name, field_value in row.items():
@@ -279,7 +282,6 @@ def zones(request):
                 if members:
                     for member in members:
                         if member:
-                            print(member)
                             zone.members.add(Alias.objects.get(name=member))  # Adjusted to use f-string for dynamic member access
                     zone.save()
 
@@ -296,7 +298,6 @@ def zones(request):
                 if members:
                     for member in members:
                         if member:
-                            print(member)
                             zone.members.add(Alias.objects.get(name=member))  # Adjusted to use f-string for dynamic member access
                     zone.save()
                 data[data.index(row)]['id'] = zone.id  # Update the data with the newly created alias's ID
@@ -329,7 +330,7 @@ def zones(request):
         # Append the dictionary to the zone_data list
         zone_data.append(zone_dict)
     # Pass the list of dictionaries to the template
-    return render(request, 'zones.html', {'zones': zone_data})
+    return render(request, 'zones.html', {'zones': zone_data, 'maxUses': config.alias_max_zones})
 
     
 

@@ -5,25 +5,48 @@ const fabricSelectOptions = [];
 const aliasSelectOptions = [];
 const fabricData = [];
 const aliasData = [];
+// let maxUses = 3; // Variable to store the maximum uses allowed
 
 // Define a function to get used aliases for the entire table
 function getUsedAliasesForTable(data) {
-    let usedAliases = new Set();
+    let usedAliases = new Map(); // Use a Map to keep track of alias usage count
+
+
     data.forEach(function (row) {
+        let usedInRow = new Set(); // Set to keep track of aliases used in the current row
+
         for (let i = 0; i <= 20; i++) {
             const memberIndex = 5 + i;
             const memberValue = row.members[i];
-            // console.log(memberValue);
+
             if (memberValue !== undefined && memberValue !== null && memberValue !== '') {
-                usedAliases.add(memberValue);
+                usedInRow.add(memberValue); // Add alias to the set of aliases used in the row
+                // Increment the usage count for the alias in the Map
+                usedAliases.set(memberValue, (usedAliases.get(memberValue) || 0) + 1);
             }
         }
+
+        // Check if any aliases used in the row exceed the maximum uses allowed
+        usedInRow.forEach(function (alias) {
+            if (usedAliases.get(alias) > maxUses) {
+                // Reduce the usage count for the alias to the maximum allowed
+                usedAliases.set(alias, maxUses);
+            }
+        });
     });
+
     return usedAliases;
 }
 
+
 $(document).ready(function () {
+    let maxUses = parseInt($('#maxUses').val());
     let container = document.getElementById('zoneTable');
+
+    // Update the maxUses variable when the input field value changes
+    $('#maxUses').on('input', function () {
+        maxUses = parseInt($(this).val());
+    });
 
     // Fetch fabric data from the server
     $.ajax({
@@ -111,9 +134,8 @@ $(document).ready(function () {
                     let rowData = this.instance.getDataAtRowProp(this.row, 'fabric__name');
                     let fabricName = rowData; // Assuming 'fabric__name' is the key for fabric in your row data
                     let usedAliases = getUsedAliasesForTable(data);
-                    let usedAliasesArray = Array.from(usedAliases);
                     let filteredOptions = aliasSelectOptions.filter(function (alias) {
-                        return alias.fabric === fabricName && !usedAliases.has(alias.label);
+                        return alias.fabric === fabricName && (usedAliases.get(alias.label) || 0) < maxUses;
                     });
                     process(filteredOptions.map(function (alias) {
                         return alias.label;
@@ -123,6 +145,7 @@ $(document).ready(function () {
             });
         })(i);
     }
+    
 
     // Add the columns to the Handsontable configuration
     zoneTable = new Handsontable(container, {
@@ -208,12 +231,13 @@ $(document).ready(function () {
         });
     
         data = data.filter(function (entry) { return entry !== undefined; });
-    
+        
         $.ajax({
             type: 'POST',
             url: '',
             data: {
                 'data': JSON.stringify(data),
+                'max_uses': maxUses,
                 'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
             },
             success: function () {

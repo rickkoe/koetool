@@ -9,6 +9,10 @@
     {% comment %} <button onclick="location.href='{% url 'create_aliases' %}'" type="button" class="btn btn-primary">
       Create Zone Commands
     </button> {% endcomment %}
+    <!-- Add an input field or dropdown for maxUses -->
+    <label for="maxUses">Maximum number of zones per alias:</label>
+    <input type="number" id="maxUses" name="maxUses" value="{{ maxUses }}" min="1">
+
   </div>
 
   <div id="hotcontainer" onscroll="scrollFunction()">

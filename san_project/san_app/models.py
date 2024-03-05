@@ -142,3 +142,4 @@ class Config(models.Model):
         ]
     )
     smartzone_prefix = models.CharField(max_length=25)
+    alias_max_zones = models.IntegerField()

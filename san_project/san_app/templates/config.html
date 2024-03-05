@@ -45,6 +45,11 @@
       <label for="{{ form.smartzone_prefix.id_for_label }}">Smart Zone Prefix:</label>
       {{ form.smartzone_prefix }}
   </div>
+  {{ form.alias_max_zones.errors }}
+  <div class="form-group">
+      <label for="{{ form.alias_max_zones.id_for_label }}">Max Zones per Alias:</label>
+      {{ form.alias_max_zones }}
+  </div>
 
   <!-- Remove the Save button -->
 </form>
