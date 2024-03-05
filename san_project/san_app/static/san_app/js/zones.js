@@ -31,10 +31,13 @@ $(document).ready(function () {
         dataType: 'json',
         success: function (aliasData) {
             for (let i = 0; i < aliasData.length; i++) {
-                aliasSelectOptions.push({
-                    label: aliasData[i].name,
-                    value: aliasData[i].id,
-                });
+                if (aliasData[i].include_in_zoning === true) {
+                    aliasSelectOptions.push({
+                        label: aliasData[i].name,
+                        value: aliasData[i].id,
+                        fabric: aliasData[i].fabric
+                    });                   
+                }
             }
         }
     });
@@ -81,15 +84,6 @@ $(document).ready(function () {
             type: "checkbox",
             className: "htCenter"
         },
-        // {
-        //     data: 'members', // This will refer to the 'members' key in the data dictionary
-        //     renderer: function (instance, td, row, col, prop, value, cellProperties) {
-        //         Handsontable.renderers.TextRenderer.apply(this, arguments);
-        //         if (value !== null && value.length > 0) { // Check if the 'members' list is not empty
-        //             td.innerHTML = value[0]; // Populate the cell with the first element of the 'members' list
-        //         }
-        //     }
-        // },
     ];
 
     for (let i = 1; i <= 20; i++) {

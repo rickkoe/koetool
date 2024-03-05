@@ -282,12 +282,6 @@ def zones(request):
                             print(member)
                             zone.members.add(Alias.objects.get(name=member))  # Adjusted to use f-string for dynamic member access
                     zone.save()
-                for i in range(0, 19):
-                    # print(row[f'members[{i}]'])
-                    if f'members[{i}]' in row:
-                        # print('hello')
-                        zone.members.add(Alias.objects.get(name=row[f'member{i}']))  # Adjusted to use f-string for dynamic member access
-                        zone.save()
 
             else:  # If there's no ID, create a new record
                 zone = Zone(
@@ -298,14 +292,17 @@ def zones(request):
                     exists=row['exists']
                     )
                 zone.save()
-                for i in range(1,20):
-                    if 'member' + str(i) in row:
-                        zone.members.add(Alias.objects.get(name=row['member'+ str(i)]))
-                        zone.save()
+                members = row['members']
+                if members:
+                    for member in members:
+                        if member:
+                            print(member)
+                            zone.members.add(Alias.objects.get(name=member))  # Adjusted to use f-string for dynamic member access
+                    zone.save()
                 data[data.index(row)]['id'] = zone.id  # Update the data with the newly created alias's ID
-        zones_non_active_customer = ZoneGroup.objects.exclude(fabric__customer=config.customer)
+        zones_non_active_customer = Zone.objects.exclude(fabric__customer=config.customer)
         zones_to_keep = [row['id'] for row in data if row['id']]
-        zones_to_delete = ZoneGroup.objects.exclude(Q(id__in=zones_to_keep) | Q(id__in=zones_non_active_customer))
+        zones_to_delete = Zone.objects.exclude(Q(id__in=zones_to_keep) | Q(id__in=zones_non_active_customer))
         zones_to_delete.delete()
         return JsonResponse({'status': 'success'})
     else:
