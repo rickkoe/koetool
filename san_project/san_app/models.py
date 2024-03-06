@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 
 
 class Customer(models.Model):
@@ -98,16 +99,11 @@ class Zone(models.Model):
 
     def __str__(self):
         return f'{self.fabric.customer}: {self.name}'
-
-# class ZoneMember(models.Model):
-#     zone = models.ForeignKey(Zone, on_delete=models.CASCADE, related_name='members')
-#     alias = models.ForeignKey('Alias', on_delete=models.CASCADE)  # ForeignKey to Alias
-
-#     def __str__(self):
-#         return f'{self.zone.fabric.customer}: {self.zone.name}:  {self.alias.name}'  # Optional, for representation
-
-#     class Meta:
-#         unique_together = ('zone', 'alias')  # Ensure uniqueness of Zone-Alias pairs
+    
+    def clean(self):
+        # Check if there is any other Zone with the same name for the same customer
+        if Zone.objects.filter(name=self.name, fabric__customer=self.customer).exists():
+            raise ValidationError('Zone with this name already exists for this customer.')
 
 class Config(models.Model):
     customer = models.ForeignKey(Customer, related_name='active_customer',

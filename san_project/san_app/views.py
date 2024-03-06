@@ -19,6 +19,20 @@ from django.core.exceptions import ObjectDoesNotExist
 def index(request):
     return render(request, 'index.html')
 
+def has_member_with_target_use(zone):
+    """
+    Check if at least one member of the zone has an attribute 'use' equal to 'target'.
+    
+    Args:
+    - zone: Zone instance
+    
+    Returns:
+    - True if at least one member has 'use' equal to 'target', False otherwise
+    """
+    for member in zone.members.all():
+        if member.use == 'target':
+            return True
+    return False
 
 def fabrics_data(request):
     config = Config.objects.first()
@@ -255,7 +269,7 @@ def zones(request):
         max_uses = json.loads(request.POST['max_uses'])
         config.alias_max_zones = max_uses
         config.save()
-        
+
             # Update existing records and add new ones
         for row in data:
             for field_name, field_value in row.items():
@@ -357,3 +371,54 @@ def create_aliases(request):
     sorted_dict = dict(sorted(alias_command_dict.items()))
     context = {'alias_command_dict': sorted_dict}
     return render(request, 'create_aliases.html', context)
+
+
+def create_zones(request):
+    config = Config.objects.first()
+    alias_type = config.cisco_alias
+    # all_zones = Zone.objects.filter(create='True', fabric__customer=config.customer)
+    all_zones = Zone.objects.select_related('fabric').prefetch_related('members').filter(create='True', fabric__customer=config.customer).order_by('id')
+    zone_command_dict = defaultdict(list)
+    for zone in all_zones:
+        zone_members = zone.members.all()
+        zone_member_list = []
+        for zone_member in zone_members:
+            zone_member_list.append(zone_member.name)
+
+
+        key = zone.fabric.name
+        if config.san_vendor == 'CI':
+            zone_command_dict[key].append(f'zone name {zone.name} vsan {zone.fabric.vsan}')   
+            for zone_member in zone_members:
+                if config.cisco_alias == 'fcalias':  
+                    zone_command_dict[key].append(f'member {alias_type} {zone_member.name}')
+                elif config.cisco_alias == 'device-alias' and zone.zone_type == 'smart_peer':
+                    zone_command_dict[key].append(f'member {alias_type} {zone_member.name} {zone_member.use}')
+                elif config.cisco_alias == 'device-alias' and zone.zone_type == 'standard':
+                    zone_command_dict[key].append(f'member {alias_type} {zone_member.name}')
+        #     elif config.cisco_zone == 'fczone':
+        #         zone_command_dict[key].append(f'fczone name {zone.name} vsan {zone.fabric.vsan} ; member pwwn {zone.wwpn} {zone.use}')
+        if config.san_vendor == 'BR':
+            if zone.zone_type == 'standard':
+                zone_member_list = ';'.join(zone_member_list)
+                if zone.exists == True:
+                    zone_command_dict[key].append(f'zoneadd "{zone.name}", "{zone_member_list}"')
+                elif zone.exists == False:
+                    zone_command_dict[key].append(f'zonecreate "{zone.name}", "{zone_member_list}"')
+            elif zone.zone_type == 'smart_peer' and has_member_with_target_use(zone):
+                initiators = ';'.join([alias.name for alias in zone_members if alias.use == 'init'])
+                targets = ';'.join([alias.name for alias in zone_members if alias.use == 'target'])
+                if zone.exists == True:
+                    zone_command_dict[key].append(f'zoneadd --peerzone "{zone.name}" -principal "{targets}" -members "{initiators}"')
+                elif zone.exists == False:
+                    zone_command_dict[key].append(f'zonecreate --peerzone "{zone.name}" -principal "{targets}" -members "{initiators}"')
+                
+    # if config.san_vendor == 'CI' and config.cisco_zone == 'device-zone':
+    #     for key in zone_command_dict:
+    #         zone_command_dict[key].append('device-zone commit')
+    zone_command_dict = dict(zone_command_dict)
+    # Sort by fabric names
+    sorted_dict = dict(sorted(zone_command_dict.items()))
+    context = {'zone_command_dict': sorted_dict}
+    return render(request, 'create_zones.html', context)
+
