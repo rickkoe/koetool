@@ -34,6 +34,17 @@ def has_member_with_target_use(zone):
             return True
     return False
 
+def merge_dicts(*dicts):
+    merged_dict = {}
+    for d in dicts:
+        for key, value in d.items():
+            if key in merged_dict:
+                merged_dict[key].extend(value)
+            else:
+                merged_dict[key] = value
+    return merged_dict
+
+
 def fabrics_data(request):
     config = Config.objects.first()
     fabrics = Fabric.objects.filter(customer=config.customer)
@@ -372,23 +383,52 @@ def create_aliases(request):
     context = {'alias_command_dict': sorted_dict}
     return render(request, 'create_aliases.html', context)
 
-
+# Create Alias Commands
 def create_zones(request):
     config = Config.objects.first()
-    alias_type = config.cisco_alias
-    # all_zones = Zone.objects.filter(create='True', fabric__customer=config.customer)
-    all_zones = Zone.objects.select_related('fabric').prefetch_related('members').filter(create='True', fabric__customer=config.customer).order_by('id')
+    all_aliases = Alias.objects.filter(create='True', fabric__customer=config.customer)
+    alias_command_dict = defaultdict(list)
     zone_command_dict = defaultdict(list)
+    zoneset_command_dict = defaultdict(list)
+    for alias in all_aliases:
+        key = alias.fabric.name
+        if key not in alias_command_dict:
+            alias_command_dict[key].append(f'### ALIAS COMMANDS FOR {key.upper()}')
+        if config.san_vendor == 'CI':
+            if config.cisco_alias == 'device-alias':
+                if len(alias_command_dict[key]) == 1:
+                    alias_command_dict[key].extend(['config t','device-alias database'])
+                alias_command_dict[key].append(f'device-alias name {alias.name} pwwn {alias.wwpn}')
+            elif config.cisco_alias == 'fcalias':
+                if len(alias_command_dict[key]) == 1:
+                    alias_command_dict[key].append('config t')
+                alias_command_dict[key].append(f'fcalias name {alias.name} vsan {alias.fabric.vsan} ; member pwwn {alias.wwpn} {alias.use}')
+        elif config.san_vendor == 'BR':
+            alias_command_dict[key].append(f'alicreate "{alias.name}", "{alias.wwpn}"')
+    if config.san_vendor == 'CI' and config.cisco_alias == 'device-alias':
+        for key in alias_command_dict:
+            alias_command_dict[key].append('device-alias commit')
+    # Create Zone Commands
+    alias_type = config.cisco_alias
+    all_zones = Zone.objects.select_related('fabric').prefetch_related('members').filter(create='True', fabric__customer=config.customer).order_by('id')
     for zone in all_zones:
         zone_members = zone.members.all()
         zone_member_list = []
         for zone_member in zone_members:
             zone_member_list.append(zone_member.name)
-
-
         key = zone.fabric.name
+        if key not in zone_command_dict:
+            zone_command_dict[key].extend(['',f'### ZONE COMMANDS FOR {key.upper()} '])
+        if key not in zoneset_command_dict:
+            zoneset_command_dict[key].extend(['',f'### ZONESET COMMANDS FOR {key.upper()} '])
         if config.san_vendor == 'CI':
-            zone_command_dict[key].append(f'zone name {zone.name} vsan {zone.fabric.vsan}')   
+            if key not in alias_command_dict:
+                zone_command_dict[key].append('config t')
+            if len(zoneset_command_dict[key]) == 2:
+                zoneset_command_dict[key].append(f'zoneset name {zone.fabric.zoneset_name} vsan {zone.fabric.vsan}')
+            zone_command_dict[key].append(f'zone name {zone.name} vsan {zone.fabric.vsan}')
+            if zone.exists == False:
+                zoneset_command_dict[key].append(f'member {zone.name}')
             for zone_member in zone_members:
                 if config.cisco_alias == 'fcalias':  
                     zone_command_dict[key].append(f'member {alias_type} {zone_member.name}')
@@ -396,8 +436,6 @@ def create_zones(request):
                     zone_command_dict[key].append(f'member {alias_type} {zone_member.name} {zone_member.use}')
                 elif config.cisco_alias == 'device-alias' and zone.zone_type == 'standard':
                     zone_command_dict[key].append(f'member {alias_type} {zone_member.name}')
-        #     elif config.cisco_zone == 'fczone':
-        #         zone_command_dict[key].append(f'fczone name {zone.name} vsan {zone.fabric.vsan} ; member pwwn {zone.wwpn} {zone.use}')
         if config.san_vendor == 'BR':
             if zone.zone_type == 'standard':
                 zone_member_list = ';'.join(zone_member_list)
@@ -412,13 +450,15 @@ def create_zones(request):
                     zone_command_dict[key].append(f'zoneadd --peerzone "{zone.name}" -principal "{targets}" -members "{initiators}"')
                 elif zone.exists == False:
                     zone_command_dict[key].append(f'zonecreate --peerzone "{zone.name}" -principal "{targets}" -members "{initiators}"')
-                
-    # if config.san_vendor == 'CI' and config.cisco_zone == 'device-zone':
-    #     for key in zone_command_dict:
-    #         zone_command_dict[key].append('device-zone commit')
-    zone_command_dict = dict(zone_command_dict)
+    if config.san_vendor == 'CI':
+        for key in zoneset_command_dict:
+            fabric = Fabric.objects.get(name=key, customer=config.customer)
+            zoneset_command_dict[key].append(f'zoneset activate name {fabric.zoneset_name} vsan {fabric.vsan}')
+            if config.cisco_zoning_mode == 'enhanced':
+                zoneset_command_dict[key].append(f'zone commit vsan {fabric.vsan}')
+    command_dict = merge_dicts(alias_command_dict, zone_command_dict, zoneset_command_dict)
+    command_dict = dict(command_dict)
     # Sort by fabric names
-    sorted_dict = dict(sorted(zone_command_dict.items()))
-    context = {'zone_command_dict': sorted_dict}
+    sorted_command_dict = dict(sorted(command_dict.items()))
+    context = {'zone_command_dict': sorted_command_dict}
     return render(request, 'create_zones.html', context)
-

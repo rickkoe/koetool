@@ -21,7 +21,6 @@
     <div id="{{ key|cut:' ' }}" class="tab-pane fade{% if forloop.first %} show active{% endif %}">
       <div class="code-block">
         <pre><code>
-        ### {{ key }} Zone Commands
         {% for command in value %}
         {{ command }}{% endfor %}
         </code></pre>
