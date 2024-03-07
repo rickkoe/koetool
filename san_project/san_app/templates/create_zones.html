@@ -15,6 +15,8 @@
     </li>
   {% endfor %}
 </ul>
+{% comment %} <a href="{% url 'download_commands_zip' %}">Download Commands ZIP</a> {% endcomment %}
+<a href="{% url 'download_commands_zip' %}?timestamp={{ timestamp }}">Download Commands</a>
 
 <div class="tab-content">
   {% for key, value in zone_command_dict.items %}
@@ -36,7 +38,24 @@
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+{% comment %} <script>
+  // Function to handle download
+  function downloadFile(response) {
+      const blob = new Blob([response.data], { type: 'application/zip' });
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = 'commands.zip';
+      link.click();
+  }
+  
+  // Make AJAX request to trigger download
+  fetch('/create-zones/')
+      .then(response => response.blob())
+      .then(downloadFile)
+      .catch(error => console.error('Error downloading file:', error));
+  </script> {% endcomment %}
 <script>
+  var timestamp = new Date().toISOString().replace(/[^0-9]/g, '');
   function copyCode() {
       const codeBlock = document.querySelector('.code-block');
       const code = codeBlock.querySelector('code').textContent;

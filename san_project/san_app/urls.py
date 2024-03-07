@@ -13,4 +13,5 @@ urlpatterns = [
     path('create-zones/', views.create_zones, name='create_zones'),
     path('storage/', views.storage, name='storage'),
     path('zones/', views.zones, name='zones'),
+    path('download-commands-zip/', views.download_commands_zip, name='download_commands_zip'),
 ]
