@@ -21,6 +21,11 @@
       {{ form.san_vendor }}
   </div>
 
+<div class="form-group">
+    <label for="{{ form.zoning_job_name.id_for_label }}">Zoning Job Name:</label>
+    {{ form.zoning_job_name }}
+</div>
+
   <div id="cisco-fields-container" class="form-group">
       {{ form.cisco_alias.errors }}
       <div>

@@ -137,5 +137,6 @@ class Config(models.Model):
             ('all-to-all', 'all-to-all')
         ]
     )
+    zoning_job_name = models.CharField(max_length=40)
     smartzone_prefix = models.CharField(max_length=25)
     alias_max_zones = models.IntegerField()

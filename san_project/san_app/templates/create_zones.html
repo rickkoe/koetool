@@ -16,7 +16,8 @@
   {% endfor %}
 </ul>
 {% comment %} <a href="{% url 'download_commands_zip' %}">Download Commands ZIP</a> {% endcomment %}
-<a href="{% url 'download_commands_zip' %}?timestamp={{ timestamp }}">Download Commands</a>
+<a href="{% url 'download_commands_zip' %}" download>Download Commands</a>
+
 
 <div class="tab-content">
   {% for key, value in zone_command_dict.items %}
