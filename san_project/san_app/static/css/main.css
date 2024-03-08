@@ -107,3 +107,7 @@ code {
     font-size: 14px;
     line-height: 1.5;
 }
+.sidebar {
+  position: relative;
+  z-index: 9999; /* Adjust this value as needed to ensure the sidebar appears on top */
+}
