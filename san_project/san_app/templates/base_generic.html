@@ -1,77 +1,110 @@
-<!DOCTYPE html>
 {% load static %}
-
+<!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="Premium Multipurpose Admin & Dashboard Template" name="description" />
+    <meta content="Themesbrand" name="author" />
 
-    <title>{% block title %}{% endblock %}</title>
-
-    <link href="{% static 'san_app/handsontable/handsontable.full.min.css' %}" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-    {% block extra_head %}{% endblock %}
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-            <div class="navbar-nav">
-                <a class="nav-item nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}" href="{% url 'index' %}">Home</a>
-                <a class="nav-item nav-link {% if request.resolver_match.url_name == 'config' %}active{% endif %}" href="{% url 'config' %}">Config</a>
-                <a class="nav-item nav-link {% if request.resolver_match.url_name == 'fabrics' %}active{% endif %}" href="{% url 'fabrics' %}">Fabrics</a>
-                <a class="nav-item nav-link {% if request.resolver_match.url_name == 'aliases' %}active{% endif %}" href="{% url 'aliases' %}">Aliases</a>
-                <a class="nav-item nav-link {% if request.resolver_match.url_name == 'zones_groups' %}active{% endif %}" href="{% url 'zone_groups' %}">Zone Groups</a>
-                <a class="nav-item nav-link {% if request.resolver_match.url_name == 'storage' %}active{% endif %}" href="{% url 'storage' %}">Storage</a>
-                <a class="nav-item nav-link {% if request.resolver_match.url_name == 'zones' %}active{% endif %}" href="{% url 'zones' %}">Zones</a>
-                <a class="nav-item nav-link" href="{% url 'admin:index' %}" target="_blank">Admin</a>
-            </div>
-            <div id="active-customer-placeholder" class="navbar-nav ml-auto">
-                {% if active_customer %}
-                    <a class="nav-item nav-link active-customer">Active Customer: {{ active_customer.name }}</a>
-                {% else %}
-                    <a class="nav-item nav-link" href="#">No Active Customer</a>
-                {% endif %}
-            </div>
-        </div>
-    </nav>
+    <title>{{heading}} | Skote - Admin & Dashboard Template</title>
     
-    <main>
-        <div class="container">
-        {% block content %}
-        <!-- This space will be filled with page-specific content -->
-        {% endblock %}
-        </div>
-    </main>
-
-    <footer>
-        <!-- Site footer goes here -->
-    </footer>
-
-    <!-- JavaScript files-->
-    {% comment %} This Script will pop up a temporary message (instead of an alert that has to be acknowledged) {% endcomment %}
-    <script>
-        function tempAlert(msg,duration)
-        {
-        var el = document.createElement("div");
-        el.setAttribute("style","position:absolute;top:15%;right:12%;background-color:white;");
-        el.innerHTML = msg;
-        setTimeout(function(){
-        el.parentNode.removeChild(el);
-        },duration)
-        document.body.appendChild(el);
-        }
-    </script>
-    <script src="{% static 'san_app/jquery/jquery.min.js' %}"></script>
-    <script src="{% static 'san_app/handsontable/handsontable.full.min.js' %}"></script>
-
-    {% block extra_js %}
-    <!-- Page specific scripts will be added here -->
+    <!-- App favicon -->
+    <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}">
+    {% block css %}
+    {% block extra_css %}
     {% endblock %}
-</body>
-</html>
+    <!-- Bootstrap Css -->
+    <link href="{% static 'css/bootstrap.min.css' %}" id="bootstrap-style" rel="stylesheet" type="text/css" />
+    <!-- Icons Css -->
+    <link href="{% static 'css/icons.min.css' %}" rel="stylesheet" type="text/css" />
+    <!-- App Css-->
+    <link href="{% static 'css/app.min.css' %}" id="app-style" rel="stylesheet" type="text/css" />
+    <!-- App js -->
+    <script src="{% static 'js/plugin.js' %}"></script>
+    {% endblock css %}
+</head>
+
+
+<body data-sidebar="dark">
+    <!-- Begin page -->
+    <div id="layout-wrapper">
+        {% block header %}
+        {% include 'partials/header.html' %}
+        {% endblock %}
+        {% block sidebar %}
+        {% include 'partials/sidebar.html' %}
+        {% endblock %}
+        {% comment %} {% block header %}
+        {% include 'partials/hori-header.html' %}
+        {% endblock %}
+        {% block sidebar %}
+        {% include 'partials/hori-sidebar.html' %}
+        {% endblock %}  {% endcomment %}
+        <!-- ============================================================== -->
+        <!-- Start right Content here -->
+        <!-- ============================================================== -->
+        <div class="main-content">
+            <div class="page-content">
+                <div class="container-fluid">
+                    <!-- start page title -->
+                    <div class="row">   
+                        <div class="col-12">
+                            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                                <h4 class="mb-sm-0 font-size-18">{{heading}}</h4>
+
+                                <div class="page-title-right">
+                                    <ol class="breadcrumb m-0">
+                                        <li class="breadcrumb-item"><a href="javascript: void(0);">{{pageview}}</a></li>
+                                        <li class="breadcrumb-item active">{{heading}}</li>
+                                    </ol>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <!-- end page title -->
+                    {% block contents %}
+
+                    {% endblock %}
+                </div>
+                <!-- container-fluid -->
+            </div>
+            <!-- End Page-content -->
+
+            {% block extra_content %}            
+            {% endblock %}
+                
+            {% block footer %}
+            {% include 'partials/footer.html' %}
+            {% endblock %}
+        </div>
+        <!-- end main content-->
+    </div>
+    <!-- END layout-wrapper -->
+    {% block Subscribe %}
+    {% endblock %} 
+
+    {% block r_sidebar %}
+    {% include 'partials/rightsidebar.html' %}
+    {% endblock %}
+
+            {% block javascript %}
+            <!-- JAVASCRIPT -->
+            <script src="{% static 'libs/jquery/dist/jquery.min.js' %}"></script>
+            <script src="{% static 'libs/bootstrap/dist/js/bootstrap.bundle.min.js' %}"></script>
+            <script src="{% static 'libs/metismenu/dist/metisMenu.min.js' %}"></script>
+            <script src="{% static 'libs/simplebar/dist/simplebar.min.js' %}"></script>
+            <script src="{% static 'libs/node-waves/dist/waves.min.js' %}"></script>
+
+
+            {% block extra_javascript %}
+            {% endblock %}
+
+            <script src="{% static 'js/app.js' %}"></script>    
+            {% endblock javascript %}
+        </body>
+
+    </html>

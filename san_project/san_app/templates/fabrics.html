@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-{% extends "base_generic.html" %}
+{% extends "partials/base.html" %}
 {% load static %}
 {% block content %}
 
@@ -8,6 +8,7 @@
 <div id="fabricTable"></div>
 
 {% endblock %}
+
 {% block extra_js %}
 
 <script src="{% static 'san_app/js/fabrics.js' %}" type="module"></script>
