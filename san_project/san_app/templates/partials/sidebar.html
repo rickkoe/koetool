@@ -14,10 +14,19 @@
             <span key="t-dashboards">SAN Zoning</span>
           </a>
           <ul class="sub-menu" aria-expanded="true">
-            <li><a href="{% url 'fabrics' %}" key="t-default">Fabrics</a></li>
             <li><a href="{% url 'aliases' %}" key="t-default">Aliases</a></li>
             <li><a href="{% url 'zones' %}" key="t-saas">Zones</a></li>
 
+          </ul>
+        </li>
+        <li>
+          <a href="javascript: void(0);" class="has-arrow waves-effect">
+            <i class='bx bx-list-ul'></i>
+            <span key="t-dashboards">Inventory</span>
+          </a>
+          <ul class="sub-menu" aria-expanded="true">
+            <li><a href="{% url 'fabrics' %}" key="t-default">Fabrics</a></li>
+            <li><a href="{% url 'storage' %}" key="t-default">Storage</a></li>
           </ul>
         </li>
         <li>

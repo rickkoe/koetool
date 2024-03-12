@@ -31,9 +31,20 @@ class Storage(models.Model):
     name = models.CharField(max_length=64)
     customer = models.ForeignKey(Customer, related_name='storage_customer',
                     on_delete=models.CASCADE) 
-    storage_type = models.CharField(max_length=20, choices=[('FlashSystem', 'FlashSystem'), ('DS8000', 'DS8000')])
+    storage_type = models.CharField(
+        max_length=20,
+        choices=[
+            ('FlashSystem', 'FlashSystem'), 
+            ('DS8000', 'DS8000'),
+            ('Switch', 'Switch')
+            ])
     location = models.CharField(max_length=100, blank=True, null=True)
-    
+    machine_type = models.CharField(max_length=4, blank=True, null=True)
+    model = models.CharField(max_length=3, blank=True, null=True)
+    serial_number = models.CharField(max_length=100, blank=True, null=True)
+
+
+
     def __str__(self):
         return f'{self.customer}: {self.name}' 
     

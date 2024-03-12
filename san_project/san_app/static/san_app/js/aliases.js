@@ -7,7 +7,7 @@ let aliasTable;
 const fabricSelectOptions = [];
 const fabricData = []
 
-$(document).ready(function() {
+$(document).ready(function () {
     let container = document.getElementById('aliasTable');
     // Check if data array is empty and add an empty row if necessary
     if (typeof data === 'undefined' || data.length === 0) {
@@ -18,7 +18,7 @@ $(document).ready(function() {
         url: '/fabrics_data/', // Replace with the appropriate URL to fetch fabric data
         type: 'GET',
         dataType: 'json',
-        success: function(fabricData) {
+        success: function (fabricData) {
             // Populate the fabricSelectOptions array with fabric names and IDs
             for (let i = 0; i < fabricData.length; i++) {
                 fabricSelectOptions.push({
@@ -27,6 +27,7 @@ $(document).ready(function() {
             }
 
             aliasTable = new Handsontable(container, {
+                // className: 'table table-dark',
                 licenseKey: 'non-commercial-and-evaluation',
                 data: data,
                 minRows: 1,
@@ -34,72 +35,73 @@ $(document).ready(function() {
                 rowHeaders: false,
                 width: '100%',
                 height: 600,
-     
+
 
                 // when selection reaches the edge of the grid's viewport, scroll the viewport
                 dragToScroll: true,
                 colHeaders: ["ID", "Alias Name", "wwpn", "Use", "Fabric", "Storage", "Create", "Zone"],
                 contextMenu: ['row_above', 'row_below', 'remove_row', '---------', 'undo', 'redo'],  // Custom context menu options
                 minSpareRows: 1,  // Always leave one spare row at the end
-                    // Enable column resizing
+                // Enable column resizing
                 manualColumnResize: true,
                 // Disable ID column
-                cells: function(row, col, prop) {
+                cells: function (row, col, prop) {
                     if (col === 0) {
-                        return {readOnly: true};
+                        return { readOnly: true };
                     }
                 },
                 columns: [
                     { data: 'id', readOnly: true },
                     { data: 'name' },
                     { data: 'wwpn' },
-                    { 
+                    {
                         type: 'dropdown',
                         // editor: 'select',
                         source: ['init', 'target', 'both'],
-                        data: 'use' },
+                        data: 'use'
+                    },
                     {
                         data: 'fabric__name',
                         type: 'dropdown',
-                        source: function(query, process) {
-                          process(fabricSelectOptions.map(function(fabric) {
-                            return fabric.label;
-                          }));
+                        source: function (query, process) {
+                            process(fabricSelectOptions.map(function (fabric) {
+                                return fabric.label;
+                            }));
                         },
-                        renderer: function(instance, td, row, col, prop, value, cellProperties) {
-                          Handsontable.renderers.TextRenderer.apply(this, arguments);
-                          if (prop === "fabric__name" && value !== null){
-                            let fabric = fabricSelectOptions.find(function(fabric) {
-                            //   console.log(td, row, prop, value)
-                              return fabric.label === value;
-                            });
-                            if (fabric) {
-                              td.innerHTML = fabric.label;
+                        renderer: function (instance, td, row, col, prop, value, cellProperties) {
+                            Handsontable.renderers.TextRenderer.apply(this, arguments);
+                            if (prop === "fabric__name" && value !== null) {
+                                let fabric = fabricSelectOptions.find(function (fabric) {
+                                    //   console.log(td, row, prop, value)
+                                    return fabric.label === value;
+                                });
+                                if (fabric) {
+                                    td.innerHTML = fabric.label;
+                                }
                             }
-                          }
                         },
                         trimDropdown: false
                     },
-                    { data: 'storage__name'},
+                    { data: 'storage__name' },
                     {
                         data: 'create',
                         type: "checkbox",
                         className: "htCenter"
-                      },
-                      {
+                    },
+                    {
                         data: 'include_in_zoning',
                         type: "checkbox",
                         className: "htCenter"
-                      },
-        
+                    },
 
-                      
+
+
                 ],
                 filters: true,
                 dropdownMenu: true,
 
-                beforeChange: function(changes) {
-                    changes.forEach(function(change) {
+                beforeChange: function (changes) {
+                    changes.forEach(function (change) {
                         if (change[1] === 'wwpn') {  // If the change is in the 'wwpn' column
                             let newValue = change[3];
                             if (/^[0-9a-fA-F]{16}$/.test(newValue)) {  // If it's 16 hexadecimal characters without colons
@@ -111,29 +113,29 @@ $(document).ready(function() {
                         }
                     });
                 },
-                afterBeginEditing: function(row, col, prop, value, cellProperties) {
+                afterBeginEditing: function (row, col, prop, value, cellProperties) {
                     if (prop === 'fabric__name') {
-                      let fabric = fabricSelectOptions.find(function(option) {
-                        return option.value === value;
-                      });
-                  
-                      if (fabric) {
-                        aliasTable.setDataAtCell(row, col, fabric.label);
-                      }
+                        let fabric = fabricSelectOptions.find(function (option) {
+                            return option.value === value;
+                        });
+
+                        if (fabric) {
+                            aliasTable.setDataAtCell(row, col, fabric.label);
+                        }
                     }
-                  },                  
-                  afterChange: function(changes, source) {
+                },
+                afterChange: function (changes, source) {
                     if (source === 'edit') {
-                        changes.forEach(function(change) {
+                        changes.forEach(function (change) {
                             let row = change[0];
                             let prop = change[1];
                             let value = change[3];
                             console.log(value)
                             if (prop === 'fabric__name') {
-                                let fabricOption = fabricSelectOptions.find(function(option) {
+                                let fabricOption = fabricSelectOptions.find(function (option) {
                                     return option.label === value;
                                 });
-                
+
                                 if (fabricOption) {
                                     // Assign the fabric ID to the 'fabric__name' property
                                     data[row].fabric__name = fabricOption.label;
@@ -143,20 +145,20 @@ $(document).ready(function() {
                         });
                     }
                 },
-                
-                
-                
+
+
+
             });
         }
     });
 });
 
 
-$('#submit-data').click(function() {
+$('#submit-data').click(function () {
     aliasTable.getPlugin('Filters').clearConditions();
     aliasTable.getPlugin('Filters').filter();
     aliasTable.render();
-    let data = aliasTable.getData().map(function(row) {
+    let data = aliasTable.getData().map(function (row) {
         console.log(row);
         if (row[1] || row[2] || row[3] || row[4]) {  // Only send rows that have at least one of these fields filled
             return {
@@ -174,7 +176,7 @@ $('#submit-data').click(function() {
 
     // Filter out any undefined entries (rows that didn't pass the check)
 
-    data = data.filter(function(entry) { return entry !== undefined; });
+    data = data.filter(function (entry) { return entry !== undefined; });
 
     $.ajax({
         type: 'POST',
@@ -183,7 +185,7 @@ $('#submit-data').click(function() {
             'data': JSON.stringify(data),
             'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
         },
-        success: function() {
+        success: function () {
             location.reload();
         },
     });
@@ -203,8 +205,8 @@ function getCookie(name) {
     }
     return cookieValue;
 
-// When the user clicks on the button, scroll to the top of the Handsontable
-function topFunction() {
-    aliasTable.scrollViewportTo(0, 0);
-    }  
+    // When the user clicks on the button, scroll to the top of the Handsontable
+    function topFunction() {
+        aliasTable.scrollViewportTo(0, 0);
+    }
 }

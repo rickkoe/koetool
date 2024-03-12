@@ -3,13 +3,17 @@
 {% load static %}
 
 {% block content %}
-  <h1>Alias List</h1>
-  <div>
-    <button id="submit-data" class="btn btn-primary">Save Changes</button>
-    <button onclick="location.href='{% url 'create_aliases' %}'" type="button" class="btn btn-primary">
+  <div class="container">
+    <div class="row">
+      <div class="col btn-group"
+    <button id="submit-data" class="btn btn-outline-secondary btn-sm">Save Changes</button>
+    <button onclick="location.href='{% url 'create_aliases' %}'" type="button" class="btn btn-outline-secondary btn-sm">
       Create Alias Commands
     </button>
   </div>
+</div>
+  </div>
+
 
   <div id="hotcontainer" onscroll="scrollFunction()">
     <div id="aliasTable"></div>

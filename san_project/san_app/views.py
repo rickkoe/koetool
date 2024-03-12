@@ -68,7 +68,12 @@ def config(request):
     else:
         form = ConfigForm(instance=config_instance)
     config = Config.objects.first()
-    context = {'form': form, 'active_customer': config.customer}
+    context = {
+        'form': form,
+        'active_customer': config.customer,
+        'heading': 'Config',
+        'pageview': 'Settings'
+        }
     return render(request, 'config.html', context)
     
 @csrf_exempt
@@ -139,8 +144,11 @@ def aliases(request):
                     # Convert Python None to JSON null
                 if field_value is None:
                         alias[field_name] = 'null'
-            
-        return render(request, 'aliases.html', {'aliases': list(aliases)})
+        
+        context = {'aliases': list(aliases),
+                   'heading': 'Aliases',
+                   'pageview': 'Zoning'}  
+        return render(request, 'aliases.html', context)
 
 
 @csrf_exempt
@@ -154,14 +162,20 @@ def storage(request):
                     customer=config.customer,
                     name=row['name'],
                     storage_type=row['storage_type'],
-                    location=row['location']
+                    location=row['location'],
+                    machine_type=row['machine_type'],
+                    model=row['model'],
+                    serial_number=row['serial_number']
                 )
             else:  # If there's no ID, create a new record
                 storage = Storage(
                     customer=config.customer,
                     name=row['name'],
                     storage_type=row['storage_type'],
-                    location=row['location']
+                    location=row['location'],
+                    machine_type=row['machine_type'],
+                    model=row['model'],
+                    serial_number=row['serial_number']
                 )
                 storage.save()
                 data[data.index(row)]['id'] = storage.id  # Update the data with the newly created alias's ID
@@ -171,7 +185,7 @@ def storage(request):
         storage_to_delete.delete()
         return JsonResponse({'status': 'success'})
     else:
-        storage = Storage.objects.values('id','name','storage_type','location').filter(customer=config.customer)
+        storage = Storage.objects.values('id','name','storage_type','location', 'machine_type', 'model', 'serial_number').filter(customer=config.customer)
         for i in storage:
             for field_name, field_value in i.items():
                 if isinstance(field_value, bool):
@@ -179,7 +193,10 @@ def storage(request):
                     # Convert Python None to JSON null
                 if field_value is None:
                         i[field_name] = ''          
-        return render(request, 'storage.html', {'storage': list(storage)})
+        context = {'storage': list(storage),
+                   'heading': 'Storage',
+                   'pageview': 'Inventory'}  
+        return render(request, 'storage.html', context)
 
 @csrf_exempt
 def fabrics(request):
@@ -228,7 +245,11 @@ def fabrics(request):
             for field_name, field_value in fabric.items():
                 if isinstance(field_value, bool):
                     fabric[field_name] = str(field_value).lower()
-        return render(request, 'fabrics.html', {'fabrics': list(fabrics)})
+        context = {'fabrics': list(fabrics),
+                   'heading': 'Fabrics',
+                   'pageview': 'Inventory'}  
+
+        return render(request, 'fabrics.html', context)
 
 
 @csrf_exempt
@@ -355,7 +376,11 @@ def zones(request):
         # Append the dictionary to the zone_data list
         zone_data.append(zone_dict)
     # Pass the list of dictionaries to the template
-    return render(request, 'zones.html', {'zones': zone_data, 'maxUses': config.alias_max_zones})
+    context = {'zones': zone_data,
+                'maxUses': config.alias_max_zones,
+                'heading': 'Zones',
+                'pageview': 'Zoning'}      
+    return render(request, 'zones.html', context)
 
     
 
@@ -380,7 +405,11 @@ def create_aliases(request):
     alias_command_dict = dict(alias_command_dict)
     # Sort by fabric names
     sorted_dict = dict(sorted(alias_command_dict.items()))
-    context = {'alias_command_dict': sorted_dict}
+    context = {
+        'alias_command_dict': sorted_dict,
+        'heading': 'Alias Commands',
+        'pageview': 'Aliases'
+               }
     return render(request, 'create_aliases.html', context)
 
 # Create Alias Commands
@@ -474,13 +503,17 @@ def create_zone_command_dict():
 
 def create_zones(request):
     zone_command_dict = create_zone_command_dict()
-    context = {'zone_command_dict': zone_command_dict}
+    context = {
+        'zone_command_dict': zone_command_dict,
+        'heading': 'Zone Commands',
+        'pageview': 'Zones'
+        }
     return render(request, 'create_zones.html', context)
 
 # Create Alias Commands
 def download_commands_zip(request):
     config = Config.objects.first()
-    timestamp = datetime.datetime.now().strftime("%d%m%Y")
+    timestamp = datetime.datetime.now().strftime("%Y%m%d")
     download_filename = f'{config.customer.name} {config.zoning_job_name} Zoning Commands {timestamp}.zip'
     zone_command_dict = create_zone_command_dict()
     # Create a zip file in memory
