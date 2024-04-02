@@ -165,7 +165,11 @@ def storage(request):
                     location=row['location'],
                     machine_type=row['machine_type'],
                     model=row['model'],
-                    serial_number=row['serial_number']
+                    serial_number=row['serial_number'],
+                    firmware_level=row['firmware_level'],
+                    storage_image=row['storage_image'],
+                    system_id=row['system_id'],
+                    primary_ip=row['primary_ip']
                 )
             else:  # If there's no ID, create a new record
                 storage = Storage(
@@ -175,7 +179,11 @@ def storage(request):
                     location=row['location'],
                     machine_type=row['machine_type'],
                     model=row['model'],
-                    serial_number=row['serial_number']
+                    serial_number=row['serial_number'],
+                    firmware_level=row['firmware_level'],
+                    storage_image=row['storage_image'],
+                    system_id=row['system_id'],
+                    primary_ip=row['primary_ip']
                 )
                 storage.save()
                 data[data.index(row)]['id'] = storage.id  # Update the data with the newly created alias's ID
@@ -185,7 +193,7 @@ def storage(request):
         storage_to_delete.delete()
         return JsonResponse({'status': 'success'})
     else:
-        storage = Storage.objects.values('id','name','storage_type','location', 'machine_type', 'model', 'serial_number').filter(customer=config.customer)
+        storage = Storage.objects.values('id','name','storage_type','location', 'machine_type', 'model', 'serial_number', 'firmware_level', 'storage_image', 'system_id', 'primary_ip').filter(customer=config.customer)
         for i in storage:
             for field_name, field_value in i.items():
                 if isinstance(field_value, bool):

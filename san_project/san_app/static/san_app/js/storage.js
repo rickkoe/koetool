@@ -42,7 +42,7 @@ $(document).ready(function () {
                 licenseKey: 'non-commercial-and-evaluation',
                 data: data,
                 minRows: 1,
-                minCols: 7,
+                minCols: 6,
                 rowHeaders: false,
                 width: '100%',
                 height: 600,
@@ -50,7 +50,7 @@ $(document).ready(function () {
 
                 // when selection reaches the edge of the grid's viewport, scroll the viewport
                 dragToScroll: true,
-                colHeaders: ["ID", "Storage Name", "Storage Type", "Location", "Machine Type", "Model", "Serial Number"],
+                colHeaders: ["ID", "Storage Name", "Storage Type", "Location", "Machine Type", "Model", "Serial Number", "Firmware Level", "Storage Image", "System ID", "Primary_IP"],
                 contextMenu: ['row_above', 'row_below', 'remove_row', '---------', 'undo', 'redo'],  // Custom context menu options
                 minSpareRows: 1,  // Always leave one spare row at the end
                 // Enable column resizing
@@ -73,7 +73,11 @@ $(document).ready(function () {
                     { data: 'location' },
                     { data: 'machine_type' },
                     { data: 'model' },
-                    { data: 'serial_number' }
+                    { data: 'serial_number' },
+                    { data: 'firmware_level' },
+                    { data: 'storage_image' },
+                    { data: 'system_id' },
+                    { data: 'primary_ip' },
                 ],
                 filters: true,
                 dropdownMenu: true,
@@ -146,7 +150,11 @@ $('#submit-data').click(function () {
                 location: row[3],
                 machine_type: row[4],
                 model: row[5],
-                serial_number: row[6]
+                serial_number: row[6],
+                firmware_level: row[7],
+                storage_image: row[8],
+                system_id: row[9],
+                primary_ip: row[10],
             };
         }
     });

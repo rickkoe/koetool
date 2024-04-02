@@ -6,9 +6,26 @@ $.ajaxSetup({
 let aliasTable;
 const fabricSelectOptions = [];
 const fabricData = []
+console.log(window.innerHeight);
 
 $(document).ready(function () {
     let container = document.getElementById('aliasTable');
+    // Function to calculate viewport height
+    function calculateViewportHeight() {
+        console.log(window.innerHeight);
+        return window.innerHeight;
+    }
+
+    // Set the height of the container dynamically
+    function setContainerHeight() {
+        container.style.height = calculateViewportHeight() + 'px';
+    }
+
+
+    // Call setContainerHeight initially and whenever the window is resized
+    setContainerHeight();
+    window.addEventListener('resize', setContainerHeight);
+
     // Check if data array is empty and add an empty row if necessary
     if (typeof data === 'undefined' || data.length === 0) {
         data = [[]];
@@ -34,7 +51,7 @@ $(document).ready(function () {
                 minCols: 6,
                 rowHeaders: false,
                 width: '100%',
-                height: 600,
+                height: calculateViewportHeight(),
 
 
                 // when selection reaches the edge of the grid's viewport, scroll the viewport

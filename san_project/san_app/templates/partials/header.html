@@ -16,7 +16,7 @@
 
                         <a href="{% url 'index' %}" class="logo logo-light">
                             <span class="logo-sm">
-                                <img src="{% static 'images/logo-light.svg' %}" alt="" height="22">
+                                <img src="{% static 'images/logo-light.png' %}" alt="" height="22">
                             </span>
                             <span class="logo-lg">
                                 <img src="{% static 'images/logo-light.png' %}" alt="" height="40">
@@ -29,7 +29,15 @@
                     </button>
 
                 </div>
-
+                <div id="active-customer-placeholder">
+                    <h1>
+                    {% if active_customer %}
+                        <a class="nav-item nav-link active-customer">{{ active_customer.name }}</a>
+                    {% else %}
+                        <a class="nav-item nav-link" href="#">No Active Customer</a>
+                    {% endif %}
+                    </h1>
+                </div>
                 <div class="d-flex">
 
                     <div class="dropdown d-inline-block d-lg-none ms-2">
@@ -51,8 +59,10 @@
                                 </div>
                             </form>
                         </div>
+                        
                     </div>
-
+                    
+                    
                     <div class="dropdown d-none d-lg-inline-block ms-1">
                         <button type="button" class="btn header-item noti-icon waves-effect" data-bs-toggle="fullscreen">
                             <i class="bx bx-fullscreen"></i>

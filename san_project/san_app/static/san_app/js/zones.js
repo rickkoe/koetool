@@ -155,7 +155,7 @@ $(document).ready(function () {
         minCols: 26,
         rowHeaders: false,
         width: '100%',
-        height: 600,
+        height: 1200,
         dragToScroll: true,
         colHeaders: ["ID", "Zone Name", "Fabric", "Zone Type", "Create", "Exists", ...Array.from({ length: 20 }, (_, i) => `Member${i + 1}`)],
         contextMenu: ['row_above', 'row_below', 'remove_row', '---------', 'undo', 'redo'],

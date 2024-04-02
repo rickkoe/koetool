@@ -1,24 +1,22 @@
 <!DOCTYPE html>
 {% extends "partials/base.html" %}
 {% load static %}
-
 {% block content %}
-  <div class="container">
+  <div class="container-fluid">
     <div class="row">
-      <div class="col btn-group"
-    <button id="submit-data" class="btn btn-outline-secondary btn-sm">Save Changes</button>
-    <button onclick="location.href='{% url 'create_aliases' %}'" type="button" class="btn btn-outline-secondary btn-sm">
-      Create Alias Commands
-    </button>
-  </div>
-</div>
-  </div>
-
-
-  <div id="hotcontainer" onscroll="scrollFunction()">
-    <div id="aliasTable"></div>
-    <!-- Floating button -->
-    <button onclick="topFunction()" class="floating-button" id="topBtn" title="Go to top">Top</button>
+      <div class="col">
+        <button id="submit-data" class="btn btn-secondary btn-sm">Save Changes</button>
+        <button onclick="location.href='{% url 'create_aliases' %}'" type="button" class="btn btn-secondary btn-sm">
+          Create Alias Commands
+        </button>
+      </div>
+    </div>
+    <div id="hotcontainer" onscroll="scrollFunction()">
+      <div id="aliasTable"></div>
+        <!-- Floating button -->
+        <button onclick="topFunction()" class="floating-button" id="topBtn" title="Go to top">Top</button>
+      </div>
+    </div>
   </div>
 {% endblock %}
 
@@ -27,7 +25,6 @@
     // Get the button and the container div for the table:
     let mybutton = document.getElementById("topBtn");
     let hotcontainer = document.getElementById("hotcontainer");
-
     // When the user scrolls down 20px from the top of the document, show the button
     function scrollFunction() {
       console.log("scrolling");

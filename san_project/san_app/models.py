@@ -42,9 +42,12 @@ class Storage(models.Model):
     machine_type = models.CharField(max_length=4, blank=True, null=True)
     model = models.CharField(max_length=3, blank=True, null=True)
     serial_number = models.CharField(max_length=100, blank=True, null=True)
-
-
-
+    storage_image = models.CharField(max_length=7, blank=True, null=True)
+    system_id = models.CharField(max_length=16, blank=True, null=True)
+    firmware_level = models.CharField(max_length=16, blank=True, null=True)
+    primary_ip = models.CharField(max_length=11, blank=True, null=True)
+    secondary_ip = models.CharField(max_length=11, blank=True, null=True)
+    
     def __str__(self):
         return f'{self.customer}: {self.name}' 
     
@@ -151,3 +154,8 @@ class Config(models.Model):
     zoning_job_name = models.CharField(max_length=40)
     smartzone_prefix = models.CharField(max_length=25)
     alias_max_zones = models.IntegerField()
+
+
+class VolumeRange(models.Model):
+    customer = models.ForeignKey(Customer, related_name='voume_range_customer',
+                    on_delete=models.CASCADE)

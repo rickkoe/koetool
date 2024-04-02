@@ -11,11 +11,35 @@
         <li>
           <a href="javascript: void(0);" class="has-arrow waves-effect">
             <i class='bx bx-shape-circle'></i>
-            <span key="t-dashboards">SAN Zoning</span>
+            <span key="t-dashboards">SAN</span>
           </a>
           <ul class="sub-menu" aria-expanded="true">
             <li><a href="{% url 'aliases' %}" key="t-default">Aliases</a></li>
             <li><a href="{% url 'zones' %}" key="t-saas">Zones</a></li>
+
+          </ul>
+        </li>
+
+        <li>
+          <a href="javascript: void(0);" class="has-arrow waves-effect">
+            <i class='bx bx-box'></i>
+            <span key="t-dashboards">DS8000</span>
+          </a>
+          <ul class="sub-menu" aria-expanded="true">
+            <li><a href="{% url 'aliases' %}" key="t-default">Volumes</a></li>
+            <li><a href="{% url 'zones' %}" key="t-saas">Volume Ranges</a></li>
+
+          </ul>
+        </li>
+
+        <li>
+          <a href="javascript: void(0);" class="has-arrow waves-effect">
+            <i class='bx bx-cloud-lightning' ></i>
+            <span key="t-dashboards">FlashSystem</span>
+          </a>
+          <ul class="sub-menu" aria-expanded="true">
+            <li><a href="{% url 'aliases' %}" key="t-default">Volumes</a></li>
+            <li><a href="{% url 'zones' %}" key="t-saas">Volume Ranges</a></li>
 
           </ul>
         </li>
@@ -36,6 +60,7 @@
           </a>
           <ul class="sub-menu" aria-expanded="true">
             <li><a href="{% url 'config' %}" key="t-default">Config</a></li>
+            <li><a href="{% url 'admin:index' %}" target="_blank">Admin</a></li>
           </ul>
         </li>
 
