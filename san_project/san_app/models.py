@@ -12,25 +12,37 @@ class Customer(models.Model):
         return self.name
     
 
+class Project(models.Model):
+    customer = models.ForeignKey(Customer, related_name='projects', on_delete=models.CASCADE)
+    name = models.CharField(max_length=200)
+
+    class Meta:
+        ordering = ['customer', 'name']
+    
+    class Meta:
+        unique_together = ['customer', 'name']
+
+    def __str__(self):
+        return f'{self.customer}: {self.name}'
+
+
 class Fabric(models.Model):
-    customer = models.ForeignKey(Customer, related_name='fabric_customer',
-                        on_delete=models.CASCADE)    
+    project = models.ForeignKey(Project, related_name='fabrics', on_delete=models.CASCADE)
     name = models.CharField(max_length=64)
     zoneset_name = models.CharField(max_length=200)
     vsan = models.IntegerField(blank=True, null=True)
     exists = models.BooleanField(default=False)
 
     def __str__(self):
-        return f'{self.customer}: {self.name}'
+        return f'{self.project}: {self.name}'
     
     class Meta:
-        unique_together = ['customer', 'name']
+        unique_together = ['project', 'name']
 
 
 class Storage(models.Model):
+    project = models.ForeignKey(Project, related_name='storages', on_delete=models.CASCADE)
     name = models.CharField(max_length=64)
-    customer = models.ForeignKey(Customer, related_name='storage_customer',
-                    on_delete=models.CASCADE) 
     storage_type = models.CharField(
         max_length=20,
         choices=[
@@ -49,14 +61,14 @@ class Storage(models.Model):
     secondary_ip = models.CharField(max_length=11, blank=True, null=True)
     
     def __str__(self):
-        return f'{self.customer}: {self.name}' 
+        return f'{self.project}: {self.name}' 
     
     class Meta:
-        unique_together = ['customer', 'name']
+        unique_together = ['project', 'name']
 
 class Alias(models.Model):
     fabric = models.ForeignKey(Fabric, on_delete=models.CASCADE)
-    storage = models.ForeignKey(Storage, on_delete=models.CASCADE, related_name='alias_storage', null=True, blank=True)
+    storage = models.ForeignKey(Storage, on_delete=models.CASCADE, related_name='aliases', null=True, blank=True)
     USE_CHOICES = [
         ('init', 'Initiator'),
         ('target', 'Target'),
@@ -69,15 +81,15 @@ class Alias(models.Model):
     include_in_zoning = models.BooleanField(default=False)
 
     @property
-    def customer(self):
-        return self.fabric.customer if self.fabric else None
+    def project(self):
+        return self.fabric.project if self.fabric else None
     
     class Meta:
         ordering = ['name']
         unique_together = ['fabric', 'wwpn']
     
     def __str__(self):
-        return f'{self.fabric.customer}: {self.name}'
+        return f'{self.fabric.project}: {self.name}'
 
 
 class ZoneGroup(models.Model):
@@ -93,7 +105,7 @@ class ZoneGroup(models.Model):
     exists = models.BooleanField(default=False)
 
     def __str__(self):
-        return f'{self.fabric.customer}: {self.name}'
+        return f'{self.fabric.project}: {self.name}'
 
 
 class Zone(models.Model):
@@ -108,40 +120,42 @@ class Zone(models.Model):
     members = models.ManyToManyField(Alias)
 
     @property
-    def customer(self):
-        return self.fabric.customer
+    def project(self):
+        return self.fabric.project
 
     def __str__(self):
-        return f'{self.fabric.customer}: {self.name}'
+        return f'{self.fabric.project}: {self.name}'
     
     def clean(self):
-        # Check if there is any other Zone with the same name for the same customer
-        if Zone.objects.filter(name=self.name, fabric__customer=self.customer).exists():
-            raise ValidationError('Zone with this name already exists for this customer.')
+        # Check if there is any other Zone with the same name for the same project
+        if Zone.objects.filter(name=self.name, fabric__project=self.project).exists():
+            raise ValidationError('Zone with this name already exists for this project.')
 
 class Config(models.Model):
-    customer = models.ForeignKey(Customer, related_name='active_customer',
-                        on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, related_name='configs', on_delete=models.CASCADE)
     san_vendor = models.CharField(
         max_length=7,
         choices=[
             ('BR', 'Brocade'),
             ('CI', 'Cisco'),
-        ]
+        ],
+        default='BR'
     )
     cisco_alias = models.CharField(
         max_length=15,
         choices=[
             ('device-alias', 'device-alias'),
             ('fcalias', 'fcalias')
-        ]   
+        ],
+        default='device-alias'  
     )
     cisco_zoning_mode = models.CharField(
         max_length=15,
         choices=[
             ('basic','basic'),
             ('enhanced','enhanced')
-        ]
+        ],
+        default='enhanced'
     )
     zone_ratio = models.CharField(
         max_length=20,
@@ -149,13 +163,37 @@ class Config(models.Model):
             ('one-to-one','one-to-one'),
             ('one-to-many', 'one-to-many'),
             ('all-to-all', 'all-to-all')
-        ]
+        ],
+        default='one-to-one'
     )
-    zoning_job_name = models.CharField(max_length=40)
-    smartzone_prefix = models.CharField(max_length=25)
-    alias_max_zones = models.IntegerField()
+    zoning_job_name = models.CharField(max_length=40, default='default_job')
+    smartzone_prefix = models.CharField(max_length=25, default='')
+    alias_max_zones = models.IntegerField(default=1)
 
 
 class VolumeRange(models.Model):
-    customer = models.ForeignKey(Customer, related_name='voume_range_customer',
-                    on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, related_name='volume_ranges', on_delete=models.CASCADE)
+    base_name = models.CharField(max_length=200, null=True, blank=True)
+    start = models.CharField(max_length=4)
+    end = models.CharField(max_length=4)
+    voltype = models.CharField(
+        max_length=3,
+                choices=[
+            ('CKD','CKD'),
+            ('FB', 'FB'),
+        ],
+        default='CKD'
+    )
+
+    def __str__(self):
+        return f'{self.project}: {self.start}-{self.end}'
+
+class Host(models.Model):
+    project = models.ForeignKey(Project, related_name='host_project', on_delete=models.CASCADE)
+    name = models.CharField(max_length=200)
+
+    class Meta:
+        unique_together = ['project', 'name']
+
+    def __str__(self):
+        return f'{self.project}: {self.name}'

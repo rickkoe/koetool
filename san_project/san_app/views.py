@@ -47,13 +47,13 @@ def merge_dicts(*dicts):
 
 def fabrics_data(request):
     config = Config.objects.first()
-    fabrics = Fabric.objects.filter(customer=config.customer)
+    fabrics = Fabric.objects.filter(project=config.project)
     data = [{'id': fabric.id, 'name': fabric.name, 'vsan': fabric.vsan, 'exists': fabric.exists} for fabric in fabrics]
     return JsonResponse(data, safe=False)
 
 def alias_data(request):
     config = Config.objects.first()
-    aliases = Alias.objects.filter(fabric__customer=config.customer)
+    aliases = Alias.objects.filter(fabric__project=config.project)
     data = [{'id': alias.id, 'name': alias.name, 'fabric': alias.fabric.name, 'use': alias.use, 'create': alias.create, 'include_in_zoning': alias.include_in_zoning} for alias in aliases]
     return JsonResponse(data, safe=False)   
 
@@ -70,7 +70,7 @@ def config(request):
     config = Config.objects.first()
     context = {
         'form': form,
-        'active_customer': config.customer,
+        'active_customer': config.project.customer,
         'heading': 'Config',
         'pageview': 'Settings'
         }
@@ -95,13 +95,13 @@ def aliases(request):
                     row[i] = 'False'
             fabric_name = row['fabric']
             try:
-                fabric = Fabric.objects.get(name=fabric_name, customer=config.customer)
+                fabric = Fabric.objects.get(name=fabric_name, project=config.project)
             except ObjectDoesNotExist:
                 fabric = None  # or handle missing fabric as needed
             if row['storage']:
                 storage_name = row['storage']
                 try:
-                    storage = Storage.objects.get(name=storage_name, customer=config.customer)
+                    storage = Storage.objects.get(name=storage_name, project=config.project)
                 except ObjectDoesNotExist:
                     storage = None  # or handle missing storage as needed
             else:
@@ -127,7 +127,7 @@ def aliases(request):
                     include_in_zoning=row['include_in_zoning'])
                 san_alias.save()
                 data[data.index(row)]['id'] = san_alias.id  # Update the data with the newly created alias's ID
-        aliases_non_active_customer = Alias.objects.exclude(fabric__customer=config.customer)
+        aliases_non_active_customer = Alias.objects.exclude(fabric__project=config.project)
         aliases_to_keep = [row['id'] for row in data if row['id']]
         aliases_to_delete = Alias.objects.exclude(Q(id__in=aliases_to_keep) | Q(id__in=aliases_non_active_customer))
         aliases_to_delete.delete()
@@ -135,7 +135,7 @@ def aliases(request):
     else:
         # For GET requests, we just send all the records to the template
 
-        aliases = Alias.objects.values('id','name','wwpn','use','fabric__name','storage__name','create','include_in_zoning').filter(fabric__customer=config.customer)
+        aliases = Alias.objects.values('id','name','wwpn','use','fabric__name','storage__name','create','include_in_zoning').filter(fabric__project=config.project)
                 # Convert boolean fields to lowercase in each fabric dictionary
         for alias in aliases:
             for field_name, field_value in alias.items():
@@ -159,7 +159,7 @@ def storage(request):
         for row in data:
             if row['id']:  # If there's an ID, update the record
                 Storage.objects.filter(id=row['id']).update(
-                    customer=config.customer,
+                    project=config.project,
                     name=row['name'],
                     storage_type=row['storage_type'],
                     location=row['location'],
@@ -173,7 +173,7 @@ def storage(request):
                 )
             else:  # If there's no ID, create a new record
                 storage = Storage(
-                    customer=config.customer,
+                    project=config.project,
                     name=row['name'],
                     storage_type=row['storage_type'],
                     location=row['location'],
@@ -187,13 +187,13 @@ def storage(request):
                 )
                 storage.save()
                 data[data.index(row)]['id'] = storage.id  # Update the data with the newly created alias's ID
-        storage_non_active_customer = Storage.objects.exclude(customer=config.customer)
+        storage_non_active_customer = Storage.objects.exclude(project=config.project)
         storage_to_keep = [row['id'] for row in data if row['id']]
         storage_to_delete = Storage.objects.exclude(Q(id__in=storage_to_keep) | Q(id__in=storage_non_active_customer))
         storage_to_delete.delete()
         return JsonResponse({'status': 'success'})
     else:
-        storage = Storage.objects.values('id','name','storage_type','location', 'machine_type', 'model', 'serial_number', 'firmware_level', 'storage_image', 'system_id', 'primary_ip').filter(customer=config.customer)
+        storage = Storage.objects.values('id','name','storage_type','location', 'machine_type', 'model', 'serial_number', 'firmware_level', 'storage_image', 'system_id', 'primary_ip').filter(project=config.project)
         for i in storage:
             for field_name, field_value in i.items():
                 if isinstance(field_value, bool):
@@ -205,6 +205,62 @@ def storage(request):
                    'heading': 'Storage',
                    'pageview': 'Inventory'}  
         return render(request, 'storage.html', context)
+
+@csrf_exempt
+def ds_volumegroups(request):
+    config = Config.objects.first()
+    if request.method == 'POST':
+        data = json.loads(request.POST['data'])
+        for row in data:
+            if row['id']:  # If there's an ID, update the record
+                Storage.objects.filter(id=row['id']).update(
+                    project=config.project,
+                    name=row['name'],
+                    storage_type=row['storage_type'],
+                    location=row['location'],
+                    machine_type=row['machine_type'],
+                    model=row['model'],
+                    serial_number=row['serial_number'],
+                    firmware_level=row['firmware_level'],
+                    storage_image=row['storage_image'],
+                    system_id=row['system_id'],
+                    primary_ip=row['primary_ip']
+                )
+            else:  # If there's no ID, create a new record
+                storage = Storage(
+                    project=config.project,
+                    name=row['name'],
+                    storage_type=row['storage_type'],
+                    location=row['location'],
+                    machine_type=row['machine_type'],
+                    model=row['model'],
+                    serial_number=row['serial_number'],
+                    firmware_level=row['firmware_level'],
+                    storage_image=row['storage_image'],
+                    system_id=row['system_id'],
+                    primary_ip=row['primary_ip']
+                )
+                storage.save()
+                data[data.index(row)]['id'] = storage.id  # Update the data with the newly created alias's ID
+        storage_non_active_customer = Storage.objects.exclude(project=config.project)
+        storage_to_keep = [row['id'] for row in data if row['id']]
+        storage_to_delete = Storage.objects.exclude(Q(id__in=storage_to_keep) | Q(id__in=storage_non_active_customer))
+        storage_to_delete.delete()
+        return JsonResponse({'status': 'success'})
+    else:
+        storage = Storage.objects.values('id','name','storage_type','location', 'machine_type', 'model', 'serial_number', 'firmware_level', 'storage_image', 'system_id', 'primary_ip').filter(project=config.project)
+        for i in storage:
+            for field_name, field_value in i.items():
+                if isinstance(field_value, bool):
+                    i[field_name] = str(field_value).lower()
+                    # Convert Python None to JSON null
+                if field_value is None:
+                        i[field_name] = ''          
+        context = {'storage': list(storage),
+                   'heading': 'Storage',
+                   'pageview': 'Inventory'}  
+        return render(request, 'storage.html', context)
+
 
 @csrf_exempt
 def fabrics(request):
@@ -225,7 +281,7 @@ def fabrics(request):
                 if field_name == 'vsan' and field_value == None:
                     row[field_name] = 1
             if row and row['name']:
-                existing_fabric = Fabric.objects.filter(customer=config.customer, name=row['name']).exclude(id=row.get('id'))
+                existing_fabric = Fabric.objects.filter(project=config.project, name=row['name']).exclude(id=row.get('id'))
                 if existing_fabric.exists():
                     errors.append(f"Fabric name '{row['name']}' already exists for the customer.")
 
@@ -234,19 +290,19 @@ def fabrics(request):
         
         for row in data:
             if row and row['id']:  # If there's an ID, update the record
-                Fabric.objects.filter(id=row['id']).update(customer=config.customer, name=row['name'], zoneset_name=row['zoneset_name'], vsan=row['vsan'], exists=row['exists'])
+                Fabric.objects.filter(id=row['id']).update(project=config.project, name=row['name'], zoneset_name=row['zoneset_name'], vsan=row['vsan'], exists=row['exists'])
             else:  # If there's no ID, create a new record
-                fabric = Fabric(customer=config.customer, name=row['name'], zoneset_name=row['zoneset_name'], vsan=row['vsan'], exists=row['exists'])
+                fabric = Fabric(project=config.project, name=row['name'], zoneset_name=row['zoneset_name'], vsan=row['vsan'], exists=row['exists'])
                 fabric.save()
                 data[data.index(row)]['id'] = fabric.id  # Update the data with the newly created alias's ID
-        fabrics_non_active_customer = Fabric.objects.exclude(customer=config.customer)
+        fabrics_non_active_customer = Fabric.objects.exclude(project=config.project)
         fabrics_to_keep = [row['id'] for row in data if row['id']]
         fabrics_to_delete = Fabric.objects.exclude(Q(id__in=fabrics_to_keep) | Q(id__in=fabrics_non_active_customer))
         fabrics_to_delete.delete()
         return JsonResponse({'status': 'success'})
     else:
         config = Config.objects.first()
-        fabrics = Fabric.objects.values().filter(customer=config.customer)
+        fabrics = Fabric.objects.values().filter(project=config.project)
 
         # Convert boolean fields to lowercase in each fabric dictionary
         for fabric in fabrics:
@@ -277,15 +333,15 @@ def zone_groups(request):
             for i in row:
                 if i != 'id' and row[i] == None:
                     row[i] = 'False'
-            fabric = Fabric.objects.get(name=row['fabric'], customer=config.customer)
-            storage = Storage.objects.get(name=row['storage'], customer=config.customer)
+            fabric = Fabric.objects.get(name=row['fabric'], project=config.project)
+            storage = Storage.objects.get(name=row['storage'], project=config.project)
             if row['id']:  # If there's an ID, update the record
                 ZoneGroup.objects.filter(id=row['id']).update(name=row['name'], fabric=fabric, storage=storage, zone_type=row['zone_type'], create=row['create'], exists=row['exists'])
             else:  # If there's no ID, create a new record
                 zone_group = ZoneGroup(name=row['name'], fabric=fabric, storage=storage, zone_type=row['zone_type'], create=row['create'], exists=row['exists'])
                 zone_group.save()
                 data[data.index(row)]['id'] = zone_group.id  # Update the data with the newly created alias's ID
-        zones_non_active_customer = ZoneGroup.objects.exclude(fabric__customer=config.customer)
+        zones_non_active_customer = ZoneGroup.objects.exclude(fabric__project=config.project)
         zones_to_keep = [row['id'] for row in data if row['id']]
         zones_to_delete = ZoneGroup.objects.exclude(Q(id__in=zones_to_keep) | Q(id__in=zones_non_active_customer))
         zones_to_delete.delete()
@@ -293,7 +349,7 @@ def zone_groups(request):
     else:
         # For GET requests, we just send all the records to the template
 
-        zone_groups = ZoneGroup.objects.values('id','name','fabric__name', 'storage__name', 'zone_type','create','exists').filter(fabric__customer=config.customer)
+        zone_groups = ZoneGroup.objects.values('id','name','fabric__name', 'storage__name', 'zone_type','create','exists').filter(fabric__project=config.project)
                 # Convert boolean fields to lowercase in each fabric dictionary
         for zone_group in zone_groups:
             for field_name, field_value in zone_group.items():
@@ -322,7 +378,7 @@ def zones(request):
             for i in row:
                 if i != 'id' and row[i] == None:
                     row[i] = 'False'
-            fabric = Fabric.objects.get(name=row['fabric'], customer=config.customer)
+            fabric = Fabric.objects.get(name=row['fabric'], project=config.project)
             if row['id']:  # If there's an ID, update the record
                 zone = Zone.objects.get(id=row['id'])
                 zone.members.clear()
@@ -355,7 +411,7 @@ def zones(request):
                             zone.members.add(Alias.objects.get(name=member))  # Adjusted to use f-string for dynamic member access
                     zone.save()
                 data[data.index(row)]['id'] = zone.id  # Update the data with the newly created alias's ID
-        zones_non_active_customer = Zone.objects.exclude(fabric__customer=config.customer)
+        zones_non_active_customer = Zone.objects.exclude(fabric__project=config.project)
         zones_to_keep = [row['id'] for row in data if row['id']]
         zones_to_delete = Zone.objects.exclude(Q(id__in=zones_to_keep) | Q(id__in=zones_non_active_customer))
         zones_to_delete.delete()
@@ -363,7 +419,7 @@ def zones(request):
     else:
         # For GET requests, we just send all the records to the template
 
-        zones = Zone.objects.select_related('fabric').prefetch_related('members').filter(fabric__customer=config.customer).order_by('id')
+        zones = Zone.objects.select_related('fabric').prefetch_related('members').filter(fabric__project=config.project).order_by('id')
                 # Convert boolean fields to lowercase in each fabric dictionary
     # Create a list to store dictionary representations of Zone objects
     zone_data = []
@@ -394,7 +450,7 @@ def zones(request):
 
 def create_aliases(request):
     config = Config.objects.first()
-    all_aliases = Alias.objects.filter(create='True', fabric__customer=config.customer)
+    all_aliases = Alias.objects.filter(create='True', fabric__project=config.project)
     alias_command_dict = defaultdict(list)
     for alias in all_aliases:
         key = alias.fabric.name
@@ -423,7 +479,7 @@ def create_aliases(request):
 # Create Alias Commands
 def create_zone_command_dict():
     config = Config.objects.first()
-    all_aliases = Alias.objects.filter(create='True', fabric__customer=config.customer)
+    all_aliases = Alias.objects.filter(create='True', fabric__project=config.project)
     alias_command_dict = defaultdict(list)
     zone_command_dict = defaultdict(list)
     zoneset_command_dict = defaultdict(list)
@@ -447,7 +503,7 @@ def create_zone_command_dict():
             alias_command_dict[key].append('device-alias commit')
     # Create Zone Commands
     alias_type = config.cisco_alias
-    all_zones = Zone.objects.select_related('fabric').prefetch_related('members').filter(create='True', fabric__customer=config.customer).order_by('id')
+    all_zones = Zone.objects.select_related('fabric').prefetch_related('members').filter(create='True', fabric__project=config.project).order_by('id')
     for zone in all_zones:
         zone_members = zone.members.all()
         zone_member_list = []
@@ -496,7 +552,7 @@ def create_zone_command_dict():
 
     
     for key in zoneset_command_dict:
-        fabric = Fabric.objects.get(name=key, customer=config.customer)
+        fabric = Fabric.objects.get(name=key, project=config.project)
         if config.san_vendor == 'CI':
             zoneset_command_dict[key].append(f'zoneset activate name {fabric.zoneset_name} vsan {fabric.vsan}')
             if config.cisco_zoning_mode == 'enhanced':
@@ -522,7 +578,7 @@ def create_zones(request):
 def download_commands_zip(request):
     config = Config.objects.first()
     timestamp = datetime.datetime.now().strftime("%Y%m%d")
-    download_filename = f'{config.customer.name} {config.zoning_job_name} Zoning Commands {timestamp}.zip'
+    download_filename = f'{config.project.customer.name} {config.zoning_job_name} Zoning Commands {timestamp}.zip'
     zone_command_dict = create_zone_command_dict()
     # Create a zip file in memory
     zip_buffer = io.BytesIO()

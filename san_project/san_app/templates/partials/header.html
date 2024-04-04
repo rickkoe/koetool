@@ -31,8 +31,8 @@
                 </div>
                 <div id="active-customer-placeholder">
                     <h1>
-                    {% if active_customer %}
-                        <a class="nav-item nav-link active-customer">{{ active_customer.name }}</a>
+                    {% if active_project %}
+                        <a class="nav-item nav-link active-customer">{{ active_project.customer.name }}: {{ active_project.name }}</a>
                     {% else %}
                         <a class="nav-item nav-link" href="#">No Active Customer</a>
                     {% endif %}
