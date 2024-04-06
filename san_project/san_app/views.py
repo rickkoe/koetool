@@ -536,7 +536,7 @@ def create_zone_command_dict():
                     zone_command_dict[key].append(f'zoneadd "{zone.name}", "{zone_member_list}"')
                 elif zone.exists == False:
                     zone_command_dict[key].append(f'zonecreate "{zone.name}", "{zone_member_list}"')
-            elif zone.zone_type == 'smart_peer' and has_member_with_target_use(zone):
+            elif zone.zone_type == 'smart_peer':
                 initiators = ';'.join([alias.name for alias in zone_members if alias.use == 'init'])
                 targets = ';'.join([alias.name for alias in zone_members if alias.use == 'target'])
                 if zone.exists == True:
