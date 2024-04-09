@@ -67,7 +67,7 @@ $(document).ready(function () {
                     {
                         type: 'dropdown',
                         // editor: 'select',
-                        source: ['DS8000', 'FlashSystem'],
+                        source: ['DS8000', 'FlashSystem', 'Data Domain'],
                         data: 'storage_type'
                     },
                     { data: 'location' },

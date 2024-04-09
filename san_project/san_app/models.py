@@ -48,7 +48,8 @@ class Storage(models.Model):
         choices=[
             ('FlashSystem', 'FlashSystem'), 
             ('DS8000', 'DS8000'),
-            ('Switch', 'Switch')
+            ('Switch', 'Switch'),
+            ('Data Domain', 'Data Domain')
             ])
     location = models.CharField(max_length=100, blank=True, null=True)
     machine_type = models.CharField(max_length=4, blank=True, null=True)
@@ -66,6 +67,16 @@ class Storage(models.Model):
     class Meta:
         unique_together = ['project', 'name']
 
+class Host(models.Model):
+    project = models.ForeignKey(Project, related_name='host_project', on_delete=models.CASCADE)
+    name = models.CharField(max_length=200)
+
+    class Meta:
+        unique_together = ['project', 'name']
+
+    def __str__(self):
+        return f'{self.project}: {self.name}'
+    
 class Alias(models.Model):
     fabric = models.ForeignKey(Fabric, on_delete=models.CASCADE)
     storage = models.ForeignKey(Storage, on_delete=models.CASCADE, related_name='aliases', null=True, blank=True)
@@ -79,7 +90,8 @@ class Alias(models.Model):
     use = models.CharField(max_length=6, choices=USE_CHOICES, null=True, blank=True)
     create = models.BooleanField(default=False)
     include_in_zoning = models.BooleanField(default=False)
-
+    host = models.ForeignKey(Host, on_delete=models.CASCADE, related_name='alias_host', null=True, blank=True)
+    
     @property
     def project(self):
         return self.fabric.project if self.fabric else None
@@ -188,12 +200,3 @@ class VolumeRange(models.Model):
     def __str__(self):
         return f'{self.project}: {self.start}-{self.end}'
 
-class Host(models.Model):
-    project = models.ForeignKey(Project, related_name='host_project', on_delete=models.CASCADE)
-    name = models.CharField(max_length=200)
-
-    class Meta:
-        unique_together = ['project', 'name']
-
-    def __str__(self):
-        return f'{self.project}: {self.name}'

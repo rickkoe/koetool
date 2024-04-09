@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework import viewsets
 from .serializers import SANAliasSerializer
-from .models import Alias, Fabric, Config, ZoneGroup, Storage, Zone
+from .models import Alias, Fabric, Config, ZoneGroup, Storage, Zone, Host
 from .forms import ConfigForm
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -51,11 +51,33 @@ def fabrics_data(request):
     data = [{'id': fabric.id, 'name': fabric.name, 'vsan': fabric.vsan, 'exists': fabric.exists} for fabric in fabrics]
     return JsonResponse(data, safe=False)
 
+
+def storage_data(request):
+    config = Config.objects.first()
+    storages = Storage.objects.filter(project=config.project)
+    data = [{'id': storage.id, 'name': storage.name, 'storage_type': storage.storage_type, 'storage_image': storage.storage_image, 'system_id': storage.system_id, 'location': storage.location} for storage in storages]
+    return JsonResponse(data, safe=False)
+
+
 def alias_data(request):
     config = Config.objects.first()
     aliases = Alias.objects.filter(fabric__project=config.project)
     data = [{'id': alias.id, 'name': alias.name, 'fabric': alias.fabric.name, 'use': alias.use, 'create': alias.create, 'include_in_zoning': alias.include_in_zoning} for alias in aliases]
     return JsonResponse(data, safe=False)   
+
+
+from django.core.serializers.json import DjangoJSONEncoder
+import json
+
+def host_data(request):
+    config = Config.objects.first()
+    hosts = Host.objects.filter(project=config.project)
+    
+    # Serialize the ports for each host
+    data = [{'id': host.id, 'name': host.name} for host in hosts]
+    return JsonResponse(data, safe=False)
+
+
 
 def config(request):
     config_instance, created = Config.objects.get_or_create(pk=1)  # Get or create a single instance
@@ -104,6 +126,12 @@ def aliases(request):
                     storage = Storage.objects.get(name=storage_name, project=config.project)
                 except ObjectDoesNotExist:
                     storage = None  # or handle missing storage as needed
+            if row['host']:
+                host_name = row['host']
+                try:
+                    host = Host.objects.get(name=host_name, project=config.project)
+                except ObjectDoesNotExist:
+                    host = Host.objects.create(name=host_name, project=config.project)
             else:
                 storage = None
             if row['id']:  # If there's an ID, update the record
@@ -113,6 +141,7 @@ def aliases(request):
                     use=row['use'],
                     fabric=fabric,
                     storage=storage,
+                    host=host,
                     create=row['create'],
                     include_in_zoning=row['include_in_zoning']
                 )
@@ -123,6 +152,7 @@ def aliases(request):
                     use=row['use'],
                     fabric=fabric,
                     storage=storage,
+                    host=host,
                     create=row['create'],
                     include_in_zoning=row['include_in_zoning'])
                 san_alias.save()
@@ -135,7 +165,7 @@ def aliases(request):
     else:
         # For GET requests, we just send all the records to the template
 
-        aliases = Alias.objects.values('id','name','wwpn','use','fabric__name','storage__name','create','include_in_zoning').filter(fabric__project=config.project)
+        aliases = Alias.objects.values('id','name','wwpn','use','fabric__name','storage__name','host__name','create','include_in_zoning').filter(fabric__project=config.project)
                 # Convert boolean fields to lowercase in each fabric dictionary
         for alias in aliases:
             for field_name, field_value in alias.items():

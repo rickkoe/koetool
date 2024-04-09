@@ -5,7 +5,11 @@ $.ajaxSetup({
 
 let aliasTable;
 const fabricSelectOptions = [];
-const fabricData = []
+const storageSelectOptions = [];
+const hostSelectOptions = [];
+const fabricData = [];
+const storageData = [];
+const hostData = [];
 console.log(window.innerHeight);
 
 $(document).ready(function () {
@@ -42,133 +46,204 @@ $(document).ready(function () {
                     label: fabricData[i].name,
                 });
             }
-
-            aliasTable = new Handsontable(container, {
-                // className: 'table table-dark',
-                licenseKey: 'non-commercial-and-evaluation',
-                data: data,
-                minRows: 1,
-                minCols: 6,
-                rowHeaders: false,
-                width: '100%',
-                height: calculateViewportHeight(),
-
-
-                // when selection reaches the edge of the grid's viewport, scroll the viewport
-                dragToScroll: true,
-                colHeaders: ["ID", "Alias Name", "wwpn", "Use", "Fabric", "Storage", "Create", "Zone"],
-                contextMenu: ['row_above', 'row_below', 'remove_row', '---------', 'undo', 'redo'],  // Custom context menu options
-                minSpareRows: 1,  // Always leave one spare row at the end
-                // Enable column resizing
-                manualColumnResize: true,
-                // Disable ID column
-                cells: function (row, col, prop) {
-                    if (col === 0) {
-                        return { readOnly: true };
-                    }
-                },
-                columns: [
-                    { data: 'id', readOnly: true },
-                    { data: 'name' },
-                    { data: 'wwpn' },
-                    {
-                        type: 'dropdown',
-                        // editor: 'select',
-                        source: ['init', 'target', 'both'],
-                        data: 'use'
-                    },
-                    {
-                        data: 'fabric__name',
-                        type: 'dropdown',
-                        source: function (query, process) {
-                            process(fabricSelectOptions.map(function (fabric) {
-                                return fabric.label;
-                            }));
-                        },
-                        renderer: function (instance, td, row, col, prop, value, cellProperties) {
-                            Handsontable.renderers.TextRenderer.apply(this, arguments);
-                            if (prop === "fabric__name" && value !== null) {
-                                let fabric = fabricSelectOptions.find(function (fabric) {
-                                    //   console.log(td, row, prop, value)
-                                    return fabric.label === value;
-                                });
-                                if (fabric) {
-                                    td.innerHTML = fabric.label;
-                                }
-                            }
-                        },
-                        trimDropdown: false
-                    },
-                    { data: 'storage__name' },
-                    {
-                        data: 'create',
-                        type: "checkbox",
-                        className: "htCenter"
-                    },
-                    {
-                        data: 'include_in_zoning',
-                        type: "checkbox",
-                        className: "htCenter"
-                    },
-
-
-
-                ],
-                filters: true,
-                dropdownMenu: true,
-
-                beforeChange: function (changes) {
-                    changes.forEach(function (change) {
-                        if (change[1] === 'wwpn') {  // If the change is in the 'wwpn' column
-                            let newValue = change[3];
-                            if (/^[0-9a-fA-F]{16}$/.test(newValue)) {  // If it's 16 hexadecimal characters without colons
-                                change[3] = newValue.replace(/(.{2})(?=.)/g, '$1:');  // Insert colons
-                            } else if (!/^([0-9a-fA-F]{2}:){7}[0-9a-fA-F]{2}$/.test(newValue)) {  // If it's not 16 hexadecimal characters with colons
-                                change[3] = null;  // Discard the change
-                                alert('Invalid wwpn format!');
-                            }
-                        }
-                    });
-                },
-                afterBeginEditing: function (row, col, prop, value, cellProperties) {
-                    if (prop === 'fabric__name') {
-                        let fabric = fabricSelectOptions.find(function (option) {
-                            return option.value === value;
-                        });
-
-                        if (fabric) {
-                            aliasTable.setDataAtCell(row, col, fabric.label);
-                        }
-                    }
-                },
-                afterChange: function (changes, source) {
-                    if (source === 'edit') {
-                        changes.forEach(function (change) {
-                            let row = change[0];
-                            let prop = change[1];
-                            let value = change[3];
-                            console.log(value)
-                            if (prop === 'fabric__name') {
-                                let fabricOption = fabricSelectOptions.find(function (option) {
-                                    return option.label === value;
-                                });
-
-                                if (fabricOption) {
-                                    // Assign the fabric ID to the 'fabric__name' property
-                                    data[row].fabric__name = fabricOption.label;
-                                    data[row].fabric = fabricOption.value; // Assign the fabric name to the 'fabric' property
-                                }
-                            }
-                        });
-                    }
-                },
-
-
-
-            });
         }
     });
-});
+    $.ajax({
+        url: '/storage_data/', // Replace with the appropriate URL to fetch fabric data
+        type: 'GET',
+        dataType: 'json',
+        success: function (storageData) {
+            // Populate the storageSelectOptions array with fabric names and IDs
+            for (let i = 0; i < storageData.length; i++) {
+                storageSelectOptions.push({
+                    label: storageData[i].name,
+                });
+            }
+        }
+    });
+    $.ajax({
+        url: '/host_data/', // Replace with the appropriate URL to fetch fabric data
+        type: 'GET',
+        dataType: 'json',
+        success: function (hostData) {
+            // Populate the hostSelectOptions array with fabric names and IDs
+            for (let i = 0; i < hostData.length; i++) {
+                hostSelectOptions.push({
+                    label: hostData[i].name,
+                });
+            }
+        }
+    });
+
+    aliasTable = new Handsontable(container, {
+        // className: 'table table-dark',
+        licenseKey: 'non-commercial-and-evaluation',
+        data: data,
+        minRows: 1,
+        minCols: 7,
+        rowHeaders: false,
+        width: '100%',
+        height: calculateViewportHeight(),
+
+
+        // when selection reaches the edge of the grid's viewport, scroll the viewport
+        dragToScroll: true,
+        colHeaders: ["ID", "Alias Name", "wwpn", "Use", "Fabric", "Storage", "Host", "Create", "Zone"],
+        contextMenu: ['row_above', 'row_below', 'remove_row', '---------', 'undo', 'redo'],  // Custom context menu options
+        minSpareRows: 1,  // Always leave one spare row at the end
+        // Enable column resizing
+        manualColumnResize: true,
+        // Disable ID column
+        cells: function (row, col, prop) {
+            if (col === 0) {
+                return { readOnly: true };
+            }
+        },
+        columns: [
+            { data: 'id', readOnly: true },
+            { data: 'name' },
+            { data: 'wwpn' },
+            {
+                type: 'dropdown',
+                // editor: 'select',
+                source: ['init', 'target', 'both'],
+                data: 'use'
+            },
+            {
+                data: 'fabric__name',
+                type: 'dropdown',
+                source: function (query, process) {
+                    process(fabricSelectOptions.map(function (fabric) {
+                        return fabric.label;
+                    }));
+                },
+                renderer: function (instance, td, row, col, prop, value, cellProperties) {
+                    Handsontable.renderers.TextRenderer.apply(this, arguments);
+                    if (prop === "fabric__name" && value !== null) {
+                        let fabric = fabricSelectOptions.find(function (fabric) {
+                            //   console.log(td, row, prop, value)
+                            return fabric.label === value;
+                        });
+                        if (fabric) {
+                            td.innerHTML = fabric.label;
+                        }
+                    }
+                },
+                trimDropdown: false
+            },
+            {
+                data: 'storage__name',
+                type: 'dropdown',
+                source: function (query, process) {
+                    process(storageSelectOptions.map(function (storage) {
+                        return storage.label;
+                    }));
+                },
+                renderer: function (instance, td, row, col, prop, value, cellProperties) {
+                    Handsontable.renderers.TextRenderer.apply(this, arguments);
+                    if (prop === "storage__name" && value !== null) {
+                        let storage = storageSelectOptions.find(function (storage) {
+                            //   console.log(td, row, rop, value)
+                            return storage.label === value;
+                        });
+                        if (storage) {
+                            td.innerHTML = storage.label;
+                        }
+                    }
+                },
+                trimDropdown: false
+            },
+            {
+                data: 'host__name',
+                type: 'dropdown',
+                source: function (query, process) {
+                    process(hostSelectOptions.map(function (host) {
+                        return host.label;
+                    }));
+                },
+                renderer: function (instance, td, row, col, prop, value, cellProperties) {
+                    Handsontable.renderers.TextRenderer.apply(this, arguments);
+                    if (prop === "host__name" && value !== null) {
+                        let host = hostSelectOptions.find(function (host) {
+                            //   console.log(td, row, rop, value)
+                            return host.label === value;
+                        });
+                        if (host) {
+                            td.innerHTML = host.label;
+                        }
+                    }
+                },
+                trimDropdown: false
+            },
+            {
+                data: 'create',
+                type: "checkbox",
+                className: "htCenter"
+            },
+            {
+                data: 'include_in_zoning',
+                type: "checkbox",
+                className: "htCenter"
+            },
+
+
+
+        ],
+        filters: true,
+        dropdownMenu: true,
+
+        beforeChange: function (changes) {
+            changes.forEach(function (change) {
+                if (change[1] === 'wwpn') {  // If the change is in the 'wwpn' column
+                    let newValue = change[3];
+                    if (/^[0-9a-fA-F]{16}$/.test(newValue)) {  // If it's 16 hexadecimal characters without colons
+                        change[3] = newValue.replace(/(.{2})(?=.)/g, '$1:');  // Insert colons
+                    } else if (!/^([0-9a-fA-F]{2}:){7}[0-9a-fA-F]{2}$/.test(newValue)) {  // If it's not 16 hexadecimal characters with colons
+                        change[3] = null;  // Discard the change
+                        alert('Invalid wwpn format!');
+                    }
+                }
+            });
+        },
+        afterBeginEditing: function (row, col, prop, value, cellProperties) {
+            if (prop === 'fabric__name') {
+                let fabric = fabricSelectOptions.find(function (option) {
+                    return option.value === value;
+                });
+
+                if (fabric) {
+                    aliasTable.setDataAtCell(row, col, fabric.label);
+                }
+            }
+        },
+        afterChange: function (changes, source) {
+            if (source === 'edit') {
+                changes.forEach(function (change) {
+                    let row = change[0];
+                    let prop = change[1];
+                    let value = change[3];
+                    console.log(value)
+                    if (prop === 'fabric__name') {
+                        let fabricOption = fabricSelectOptions.find(function (option) {
+                            return option.label === value;
+                        });
+
+                        if (fabricOption) {
+                            // Assign the fabric ID to the 'fabric__name' property
+                            data[row].fabric__name = fabricOption.label;
+                            data[row].fabric = fabricOption.value; // Assign the fabric name to the 'fabric' property
+                        }
+                    }
+                });
+            }
+        },
+
+
+
+    });
+        }
+    );
+
 
 
 $('#submit-data').click(function () {
@@ -185,8 +260,9 @@ $('#submit-data').click(function () {
                 use: row[3],
                 fabric: row[4],
                 storage: row[5],
-                create: row[6],
-                include_in_zoning: row[7]
+                host: row[6],
+                create: row[7],
+                include_in_zoning: row[8]
             };
         }
     });

@@ -7,3 +7,4 @@ san_project/__pycache__/
 san_project/san_app/__pycache__/admin.cpython-310.pyc
 san_project/db.sqlite3
 venv/
+san_project/db.sqlite3
