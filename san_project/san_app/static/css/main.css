@@ -1,3 +1,36 @@
+
+.table-container {
+  height: 100%;
+}
+
+/* Apply grey row background to any table with class 'customTable' */
+.customTable .darkRow {
+  background-color: #D0DDEE!important;
+}
+.customTable .lightRow {
+  background-color: #ffffff !important;
+}
+
+/* Center text for any table with class 'customTable' in specific cells */
+.customTable .htCenter,
+.customTable .greyRow.htCenter,
+.customTable .darkRow.htCenter, 
+.customTable .lightRow.htCenter {
+  text-align: center;
+}
+
+.customTable thead th {
+  background-color: #4D5573;
+  color: #ffffff;
+  padding: 10px;
+  border-bottom: 2px solid #D0DDEE;
+  font-weight: bold;
+}
+
+
+
+
+
 ul {
     list-style-type: none;
     padding: 0;
@@ -111,3 +144,6 @@ code {
   position: relative;
   z-index: 9999; /* Adjust this value as needed to ensure the sidebar appears on top */
 }
+
+
+

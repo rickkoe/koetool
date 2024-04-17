@@ -149,22 +149,32 @@ $(document).ready(function () {
 
     // Add the columns to the Handsontable configuration
     zoneTable = new Handsontable(container, {
+        className: 'customTable', 
         licenseKey: 'non-commercial-and-evaluation',
         data: typeof data === 'undefined' || data.length === 0 ? [[]] : data,
         minRows: 1,
         minCols: 26,
         rowHeaders: false,
         width: '100%',
-        height: 1200,
+        height: '100%',
         dragToScroll: true,
         colHeaders: ["ID", "Zone Name", "Fabric", "Zone Type", "Create", "Exists", ...Array.from({ length: 20 }, (_, i) => `Member${i + 1}`)],
         contextMenu: ['row_above', 'row_below', 'remove_row', '---------', 'undo', 'redo'],
         minSpareRows: 1,
+        columnSorting: true,
         manualColumnResize: true,
-        cells: function (row, col, prop) {
-            if (col === 0) {
-                return { readOnly: true };
+        fixedColumnsLeft: 2,
+        cells: function(row, col, prop) {
+            const cellProperties = {};
+            if(row % 2 === 0) {
+                cellProperties.className = 'darkRow';
+            } else {
+                cellProperties.className = 'lightRow'
             }
+            if (col === 4 || col === 5) {
+                cellProperties.className = (cellProperties.className || '') + ' htCenter'; // Append to existing classes
+            }
+            return cellProperties;
         },
         columns: columns,
         filters: true,

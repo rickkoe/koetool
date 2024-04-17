@@ -77,13 +77,15 @@ $(document).ready(function () {
 
     aliasTable = new Handsontable(container, {
         // className: 'table table-dark',
+        className: 'customTable', 
         licenseKey: 'non-commercial-and-evaluation',
         data: data,
         minRows: 1,
         minCols: 7,
         rowHeaders: false,
         width: '100%',
-        height: calculateViewportHeight(),
+        height: '100%',
+        columnSorting: true,
 
 
         // when selection reaches the edge of the grid's viewport, scroll the viewport
@@ -94,10 +96,17 @@ $(document).ready(function () {
         // Enable column resizing
         manualColumnResize: true,
         // Disable ID column
-        cells: function (row, col, prop) {
-            if (col === 0) {
-                return { readOnly: true };
+        cells: function(row, col, prop) {
+            const cellProperties = {};
+            if(row % 2 === 0) {
+                cellProperties.className = 'darkRow';
+            } else {
+                cellProperties.className = 'lightRow'
             }
+            if (col === 7 || col === 8) {
+                cellProperties.className = (cellProperties.className || '') + ' htCenter'; // Append to existing classes
+            }
+            return cellProperties;
         },
         columns: [
             { data: 'id', readOnly: true },

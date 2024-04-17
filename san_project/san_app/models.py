@@ -90,8 +90,8 @@ class Alias(models.Model):
     use = models.CharField(max_length=6, choices=USE_CHOICES, null=True, blank=True)
     create = models.BooleanField(default=False)
     include_in_zoning = models.BooleanField(default=False)
-    host = models.ForeignKey(Host, on_delete=models.CASCADE, related_name='alias_host', null=True, blank=True)
-    
+    host = models.ForeignKey(Host, on_delete=models.SET_NULL, related_name='alias_host', null=True, blank=True)
+
     @property
     def project(self):
         return self.fabric.project if self.fabric else None
@@ -157,7 +157,8 @@ class Config(models.Model):
         max_length=15,
         choices=[
             ('device-alias', 'device-alias'),
-            ('fcalias', 'fcalias')
+            ('fcalias', 'fcalias'),
+            ('wwpn', 'wwpn')
         ],
         default='device-alias'  
     )

@@ -13,6 +13,7 @@ import json  # To parse and generate JSON
 from collections import defaultdict
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Prefetch
 # from .scripts import create_port_dict, create_alias_command_dict
 
 
@@ -127,11 +128,12 @@ def aliases(request):
                 except ObjectDoesNotExist:
                     storage = None  # or handle missing storage as needed
             if row['host']:
-                host_name = row['host']
-                try:
-                    host = Host.objects.get(name=host_name, project=config.project)
-                except ObjectDoesNotExist:
-                    host = Host.objects.create(name=host_name, project=config.project)
+                if row['host'] not in ['null','']:
+                    host_name = row['host']
+                    try:
+                        host = Host.objects.get(name=host_name, project=config.project)
+                    except ObjectDoesNotExist:
+                        host = Host.objects.create(name=host_name, project=config.project)
             else:
                 storage = None
             if row['id']:  # If there's an ID, update the record
@@ -506,6 +508,35 @@ def create_aliases(request):
                }
     return render(request, 'create_aliases.html', context)
 
+
+def create_hosts(request):
+    config = Config.objects.first()
+    all_hosts = Alias.objects.filter(create='True', fabric__project=config.project)
+    host_command_dict = defaultdict(list)
+    for host in all_hosts:
+        key = host.fabric.name
+        if config.san_vendor == 'CI':
+            if config.cisco_host == 'device-host':
+                if len(host_command_dict[key]) == 0:
+                    host_command_dict[key].extend(['config t','device-host database'])
+                host_command_dict[key].append(f'device-host name {host.name} pwwn {host.wwpn}')
+            elif config.cisco_host == 'fchost':
+                host_command_dict[key].append(f'fchost name {host.name} vsan {host.fabric.vsan} ; member pwwn {host.wwpn} {host.use}')
+        elif config.san_vendor == 'BR':
+            host_command_dict[key].append(f'alicreate "{host.name}", "{host.wwpn}"')
+    if config.san_vendor == 'CI' and config.cisco_host == 'device-host':
+        for key in host_command_dict:
+            host_command_dict[key].append('device-host commit')
+    host_command_dict = dict(host_command_dict)
+    # Sort by fabric names
+    sorted_dict = dict(sorted(host_command_dict.items()))
+    context = {
+        'host_command_dict': sorted_dict,
+        'heading': 'Alias Commands',
+        'pageview': 'Aliases'
+               }
+    return render(request, 'create_hosts.html', context)
+
 # Create Alias Commands
 def create_zone_command_dict():
     config = Config.objects.first()
@@ -534,6 +565,7 @@ def create_zone_command_dict():
     # Create Zone Commands
     alias_type = config.cisco_alias
     all_zones = Zone.objects.select_related('fabric').prefetch_related('members').filter(create='True', fabric__project=config.project).order_by('id')
+    firstpass = False # Set trigger for Cisco config t command
     for zone in all_zones:
         zone_members = zone.members.all()
         zone_member_list = []
@@ -545,8 +577,9 @@ def create_zone_command_dict():
         if key not in zoneset_command_dict:
             zoneset_command_dict[key].extend(['',f'### ZONESET COMMANDS FOR {key.upper()} '])
         if config.san_vendor == 'CI':
-            if key not in alias_command_dict:
+            if firstpass == False:
                 zone_command_dict[key].append('config t')
+                firstpass = True
             if len(zoneset_command_dict[key]) == 2:
                 zoneset_command_dict[key].append(f'zoneset name {zone.fabric.zoneset_name} vsan {zone.fabric.vsan}')
             zone_command_dict[key].append(f'zone name {zone.name} vsan {zone.fabric.vsan}')
@@ -559,6 +592,11 @@ def create_zone_command_dict():
                     zone_command_dict[key].append(f'member {alias_type} {zone_member.name} {zone_member.use}')
                 elif config.cisco_alias == 'device-alias' and zone.zone_type == 'standard':
                     zone_command_dict[key].append(f'member {alias_type} {zone_member.name}')
+                elif config.cisco_alias == 'wwpn':
+                    if zone.zone_type == 'smart_peer':
+                        zone_command_dict[key].append(f'member pwwn {zone_member.wwpn} {zone_member.use}')
+                    elif zone.zone_type == 'standard':
+                        zone_command_dict[key].append(f'member pwwn {zone_member.wwpn}')
         if config.san_vendor == 'BR':
             if zone.zone_type == 'standard':
                 zone_member_list = ';'.join(zone_member_list)
@@ -624,3 +662,61 @@ def download_commands_zip(request):
     response['Content-Disposition'] = f'attachment; filename="{download_filename}"'
 
     return response
+
+
+@csrf_exempt
+def hosts(request):
+    config = Config.objects.first()
+    if request.method == 'POST':
+        data = json.loads(request.POST['data'])
+
+        # Update existing records and add new ones
+        for row in data:            
+            # Ensure that fields with None values are set to 'False' string
+
+            if row['id']:  # If there's an ID, update the record
+                Host.objects.filter(id=row['id']).update(
+                    name=row['name']
+                )
+            elif row['name'] not in [None,'']:
+                print(row['name'])
+                host = Host.objects.create(
+                    name=row['name'],
+                    project=config.project
+                )
+                row['id'] = host.id  # Update the data with the newly created host's ID
+
+
+        # Delete hosts that are not in the received data
+        hosts_to_keep = [row['id'] for row in data if row['id']]
+        hosts_to_delete = Host.objects.exclude(id__in=hosts_to_keep)
+        hosts_to_delete.delete()
+
+        return JsonResponse({'status': 'success'})
+    else:
+        # For GET requests, retrieve all host records with associated aliases
+        hosts = Host.objects.filter(project=config.project).prefetch_related(
+            Prefetch('alias_host', queryset=Alias.objects.select_related('storage').order_by('name'))
+        )
+
+        # Extract host data from the prefetch_related queryset
+        host_data = []
+        for host in hosts:
+            host_dict = {
+                'id': host.id,
+                'name': host.name,
+                'wwpns': []
+            }
+            # Extract alias data for the host
+            for alias in host.alias_host.all():
+                host_dict['wwpns'].append(alias.wwpn)
+            
+            host_data.append(host_dict)
+
+        # Now, you can use the `host_data` list in your context
+        context = {
+            'hosts': host_data,
+            'heading': 'Hosts',
+            'pageview': 'DS8000'
+        }
+        return render(request, 'hosts.html', context)

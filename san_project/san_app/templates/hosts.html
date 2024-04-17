@@ -1,24 +1,19 @@
 <!DOCTYPE html>
 {% extends "partials/base.html" %}
 {% load static %}
-
 {% block content %}
   <div class="container-fluid">
     <div class="row">
       <div class="col">
         <button id="submit-data" class="btn btn-secondary btn-sm">Save Changes</button>
-        <button onclick="location.href='{% url 'create_zones' %}'" type="button" class="btn btn-secondary btn-sm">
-          Create Zone Commands
+        <button onclick="location.href='{% url 'create_hosts' %}'" type="button" class="btn btn-secondary btn-sm">
+          Create Host Commands
         </button>
       </div>
-      <div class="col">
-        <label for="maxUses">Maximum number of zones per alias:</label>
-        <input type="number" id="maxUses" name="maxUses" value="{{ maxUses }}" min="1">
-      </div>
     </div>
-
-    <div class="row" id="hotcontainer">
-      <div id="zoneTable" class="customTable"></div>
+    <div id="hotcontainer" onscroll="scrollFunction()">
+      <div id="hostTable"></div>
+      </div>
     </div>
   </div>
 {% endblock %}
@@ -28,7 +23,6 @@
     // Get the button and the container div for the table:
     let mybutton = document.getElementById("topBtn");
     let hotcontainer = document.getElementById("hotcontainer");
-
     // When the user scrolls down 20px from the top of the document, show the button
     function scrollFunction() {
       console.log("scrolling");
@@ -39,11 +33,15 @@
       }
     }
 
+    // When the user clicks on the button, scroll to the top of the div
+    function topFunction() {
+      hotcontainer.scrollTo(0, 0);
+    }
   </script>
-  <script src="{% static 'san_app/js/zones.js' %}" type="module"></script>
+  <script src="{% static 'san_app/js/hosts.js' %}" type="module"></script>
 
   <script>
-    var data = {{ zones|safe }};
+    var data = {{ hosts|safe }};
   </script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 {% endblock %}
