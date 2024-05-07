@@ -187,8 +187,16 @@ class Config(models.Model):
 class VolumeRange(models.Model):
     project = models.ForeignKey(Project, related_name='volume_ranges', on_delete=models.CASCADE)
     base_name = models.CharField(max_length=200, null=True, blank=True)
-    start = models.CharField(max_length=4)
-    end = models.CharField(max_length=4)
+    site = models.CharField(max_length=200, null=True, blank=True)
+    lpar = models.CharField(max_length=200, null=True, blank=True)
+    use = models.CharField(max_length=200, null=True, blank=True)
+    source_ds8k = models.ForeignKey(Storage, related_name='ds_source', on_delete=models.CASCADE, null=True, blank=True)
+    source_pool = models.CharField(max_length=100)
+    source_start = models.CharField(max_length=4)
+    source_end = models.CharField(max_length=4)
+    target_ds8k = models.ForeignKey(Storage, related_name='ds_target', on_delete=models.CASCADE, null=True, blank=True)
+    target_start = models.CharField(max_length=4)
+    target_end = models.CharField(max_length=4)
     voltype = models.CharField(
         max_length=3,
                 choices=[
@@ -197,7 +205,8 @@ class VolumeRange(models.Model):
         ],
         default='CKD'
     )
+    create = models.BooleanField(default=False)
 
     def __str__(self):
-        return f'{self.project}: {self.start}-{self.end}'
+        return f'{self.project}: {self.source_start}-{self.source_end}'
 

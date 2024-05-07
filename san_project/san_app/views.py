@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework import viewsets
 from .serializers import SANAliasSerializer
-from .models import Alias, Fabric, Config, ZoneGroup, Storage, Zone, Host
+from .models import Alias, Fabric, Config, ZoneGroup, Storage, Zone, Host, VolumeRange
 from .forms import ConfigForm
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -292,6 +292,72 @@ def ds_volumegroups(request):
                    'heading': 'Storage',
                    'pageview': 'Inventory'}  
         return render(request, 'storage.html', context)
+
+
+@csrf_exempt
+def ds_volume_ranges(request):
+    config = Config.objects.first()
+    if request.method == 'POST':
+        data = json.loads(request.POST['data'])
+        for row in data:
+            for field_name, field_value in row.items():
+                if field_value == "true":
+                    row[field_name] = True
+                elif field_value == "false":
+                    row[field_name] = False
+                elif field_name == 'exists' and field_value == None:
+                    row[field_name] = False
+            for i in row:
+                if i != 'id' and row[i] == None:
+                    row[i] = 'False'
+                if row['id']:  # If there's an ID, update the record
+                    volume_range = VolumeRange.objects.get(id=row['id'])
+                    field_list = ['site',
+                                'lpar',
+                                'use',
+                                'source_ds8k',
+                                'source_pool',
+                                'source_start',
+                                'source_end',
+                                'target_ds8k',
+                                'target_start',
+                                'target_end',
+                                'create']
+                    for field in field_list:
+                        setattr(volume_range, field, row[field])
+                    volume_range.save()
+                else:  # If there's no ID, create a new record
+                    volume_range = VolumeRange()
+                    field_list = ['site',
+                                'lpar',
+                                'use',
+                                'source_ds8k',
+                                'source_pool',
+                                'source_start',
+                                'source_end',
+                                'target_ds8k',
+                                'target_start',
+                                'target_end',
+                                'create']
+                    for field in field_list:
+                        setattr(volume_range, field, row[field])
+                    volume_range.save()
+
+        return JsonResponse({'status': 'success'})
+    else:
+        config = Config.objects.first()
+        volume_ranges = VolumeRange.objects.values().filter(project=config.project)
+
+        # Convert boolean fields to lowercase in each fabric dictionary
+        for volume_range in volume_ranges:
+            for field_name, field_value in volume_range.items():
+                if isinstance(field_value, bool):
+                    volume_range[field_name] = str(field_value).lower()
+        context = {'volume_ranges': list(volume_ranges),
+                'heading': 'Volume Ranges',
+                'pageview': 'DS8000'}  
+
+        return render(request, 'ds-volume-ranges.html', context)
 
 
 @csrf_exempt

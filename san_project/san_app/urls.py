@@ -18,4 +18,5 @@ urlpatterns = [
     path('storage/', views.storage, name='storage'),
     path('zones/', views.zones, name='zones'),
     path('download-commands-zip/', views.download_commands_zip, name='download_commands_zip'),
+    path('ds-volume-ranges/', views.ds_volume_ranges, name='ds_volume_ranges')
 ]
