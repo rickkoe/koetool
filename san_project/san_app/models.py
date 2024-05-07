@@ -186,7 +186,6 @@ class Config(models.Model):
 
 class VolumeRange(models.Model):
     project = models.ForeignKey(Project, related_name='volume_ranges', on_delete=models.CASCADE)
-    base_name = models.CharField(max_length=200, null=True, blank=True)
     site = models.CharField(max_length=200, null=True, blank=True)
     lpar = models.CharField(max_length=200, null=True, blank=True)
     use = models.CharField(max_length=200, null=True, blank=True)
@@ -197,14 +196,14 @@ class VolumeRange(models.Model):
     target_ds8k = models.ForeignKey(Storage, related_name='ds_target', on_delete=models.CASCADE, null=True, blank=True)
     target_start = models.CharField(max_length=4)
     target_end = models.CharField(max_length=4)
-    voltype = models.CharField(
-        max_length=3,
-                choices=[
-            ('CKD','CKD'),
-            ('FB', 'FB'),
-        ],
-        default='CKD'
-    )
+    # voltype = models.CharField(
+    #     max_length=3,
+    #             choices=[
+    #         ('CKD','CKD'),
+    #         ('FB', 'FB'),
+    #     ],
+    #     default='CKD'
+    # )
     create = models.BooleanField(default=False)
 
     def __str__(self):

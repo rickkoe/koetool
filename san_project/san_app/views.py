@@ -299,6 +299,7 @@ def ds_volume_ranges(request):
     config = Config.objects.first()
     if request.method == 'POST':
         data = json.loads(request.POST['data'])
+        print(data)
         for row in data:
             for field_name, field_value in row.items():
                 if field_value == "true":
@@ -315,11 +316,11 @@ def ds_volume_ranges(request):
                     field_list = ['site',
                                 'lpar',
                                 'use',
-                                'source_ds8k',
+                                # 'source_ds8k',
                                 'source_pool',
                                 'source_start',
                                 'source_end',
-                                'target_ds8k',
+                                # 'target_ds8k',
                                 'target_start',
                                 'target_end',
                                 'create']
@@ -328,14 +329,15 @@ def ds_volume_ranges(request):
                     volume_range.save()
                 else:  # If there's no ID, create a new record
                     volume_range = VolumeRange()
+                    setattr(volume_range, 'project', config.project)
                     field_list = ['site',
                                 'lpar',
                                 'use',
-                                'source_ds8k',
+                                # 'source_ds8k',
                                 'source_pool',
                                 'source_start',
                                 'source_end',
-                                'target_ds8k',
+                                # 'target_ds8k',
                                 'target_start',
                                 'target_end',
                                 'create']
@@ -346,7 +348,7 @@ def ds_volume_ranges(request):
         return JsonResponse({'status': 'success'})
     else:
         config = Config.objects.first()
-        volume_ranges = VolumeRange.objects.values().filter(project=config.project)
+        volume_ranges = VolumeRange.objects.values('id','site','lpar','use','source_ds8k__name','source_pool','source_start','source_end','target_ds8k__name','target_start','target_end','create').filter(project=config.project)
 
         # Convert boolean fields to lowercase in each fabric dictionary
         for volume_range in volume_ranges:

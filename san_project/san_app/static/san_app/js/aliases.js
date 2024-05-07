@@ -152,7 +152,6 @@ $(document).ready(function () {
                     Handsontable.renderers.TextRenderer.apply(this, arguments);
                     if (prop === "storage__name" && value !== null) {
                         let storage = storageSelectOptions.find(function (storage) {
-                            //   console.log(td, row, rop, value)
                             return storage.label === value;
                         });
                         if (storage) {

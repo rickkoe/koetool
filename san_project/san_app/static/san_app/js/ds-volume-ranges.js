@@ -75,7 +75,7 @@ $(document).ready(function () {
             { data: 'lpar' },
             { data: 'use' },
             {
-                data: 'source_ds8k_id',
+                data: 'source_ds8k__name',
                 type: 'dropdown',
                 source: function (query, process) {
                     process(storageSelectOptions.map(function (storage) {
@@ -85,13 +85,12 @@ $(document).ready(function () {
                 
                 renderer: function (instance, td, row, col, prop, value, cellProperties) {
                     Handsontable.renderers.TextRenderer.apply(this, arguments);
-                    if (prop === "source_ds8k_id" && value !== null) {
+                    if (prop === "source_ds8k__name" && value !== null) {
                         let storage = storageSelectOptions.find(function (storage) {
-                            return storage.id === value;
+                            return storage.label === value;
                         });
-                        
                         if (storage) {
-                            instance.setDataAtCell(row, col, storage.label);
+                            td.innerHTML = storage.label;
                         }
                     }
                 },
@@ -101,7 +100,7 @@ $(document).ready(function () {
             { data: 'source_start' },
             { data: 'source_end' },
             {
-                data: 'target_ds8k_id',
+                data: 'target_ds8k__name',
                 type: 'dropdown',
                 source: function (query, process) {
                     process(storageSelectOptions.map(function (storage) {
@@ -111,13 +110,12 @@ $(document).ready(function () {
                 
                 renderer: function (instance, td, row, col, prop, value, cellProperties) {
                     Handsontable.renderers.TextRenderer.apply(this, arguments);
-                    if (prop === "target_ds8k_id" && value !== null) {
+                    if (prop === "target_ds8k__name" && value !== null) {
                         let storage = storageSelectOptions.find(function (storage) {
-                            return storage.id === value;
+                            return storage.label === value;
                         });
-                        
                         if (storage) {
-                            instance.setDataAtCell(row, col, storage.label);
+                            td.innerHTML = storage.label;
                         }
                     }
                 },
@@ -142,22 +140,27 @@ $(document).ready(function () {
 
 
 $('#submit-data').click(function () {
-    aliasTable.getPlugin('Filters').clearConditions();
-    aliasTable.getPlugin('Filters').filter();
-    aliasTable.render();
-    let data = aliasTable.getData().map(function (row) {
-        if (row[1] || row[2] || row[3] || row[4]) {  // Only send rows that have at least one of these fields filled
-            return {
+    volumeRangeTable.getPlugin('Filters').clearConditions();
+    volumeRangeTable.getPlugin('Filters').filter();
+    volumeRangeTable.render();
+    let data = volumeRangeTable.getData().map(function (row) {
+        if (row[2] || row[3]) {
+            let rowData = {
                 id: row[0],
-                name: row[1],
-                wwpn: row[2],
+                site: row[1],
+                lpar: row[2],
                 use: row[3],
-                fabric: row[4],
-                storage: row[5],
-                host: row[6],
-                create: row[7],
-                include_in_zoning: row[8]
+                source_ds8k: row[4],
+                source_pool: row[5],
+                source_start: row[6],
+                source_end: row[7],
+                target_ds8k: row[8],
+                target_start: row[9],
+                target_end: row[10],
+                create: row[11]
             };
+
+            return rowData;
         }
     });
 
