@@ -50,7 +50,7 @@ $(document).ready(function () {
 
                 // when selection reaches the edge of the grid's viewport, scroll the viewport
                 dragToScroll: true,
-                colHeaders: ["ID", "Storage Name", "Storage Type", "Location", "Machine Type", "Model", "Serial Number", "Firmware Level", "Storage Image", "System ID", "Primary_IP"],
+                colHeaders: ["ID", "Storage Name", "Storage Type", "Location", "Machine Type", "Model", "Serial Number", "Firmware Level", "Storage Image", "WWNN", "System ID", "Primary_IP"],
                 contextMenu: ['row_above', 'row_below', 'remove_row', '---------', 'undo', 'redo'],  // Custom context menu options
                 minSpareRows: 1,  // Always leave one spare row at the end
                 // Enable column resizing
@@ -76,6 +76,7 @@ $(document).ready(function () {
                     { data: 'serial_number' },
                     { data: 'firmware_level' },
                     { data: 'storage_image' },
+                    { data: 'wwnn' },
                     { data: 'system_id' },
                     { data: 'primary_ip' },
                 ],
@@ -153,8 +154,9 @@ $('#submit-data').click(function () {
                 serial_number: row[6],
                 firmware_level: row[7],
                 storage_image: row[8],
-                system_id: row[9],
-                primary_ip: row[10],
+                wwnn: row[9],
+                system_id: row[10],
+                primary_ip: row[11],
             };
         }
     });

@@ -51,7 +51,7 @@ $(document).ready(function () {
 
         // when selection reaches the edge of the grid's viewport, scroll the viewport
         dragToScroll: true,
-        colHeaders: ['ID', 'Site', 'LPAR', 'Use', 'Source DS8k', 'Source Pool', 'Source Volume Start', 'Source Volume End', 'Target DS8k', 'Target Volume Start', 'Target Volume End', 'Create'],
+        colHeaders: ['ID', 'Target Site', 'LPAR', 'Use', 'Source DS8k', 'Source Pool', 'Source Start', 'Source End', 'Target DS8k', 'Target Start', 'Target End', 'Create'],
         contextMenu: ['row_above', 'row_below', 'remove_row', '---------', 'undo', 'redo'],  // Custom context menu options
         minSpareRows: 1,  // Always leave one spare row at the end
         // Enable column resizing

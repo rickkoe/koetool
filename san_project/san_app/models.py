@@ -55,11 +55,15 @@ class Storage(models.Model):
     machine_type = models.CharField(max_length=4, blank=True, null=True)
     model = models.CharField(max_length=3, blank=True, null=True)
     serial_number = models.CharField(max_length=100, blank=True, null=True)
-    storage_image = models.CharField(max_length=7, blank=True, null=True)
     system_id = models.CharField(max_length=16, blank=True, null=True)
+    wwnn = models.CharField(max_length=23, blank=True, null=True)
     firmware_level = models.CharField(max_length=16, blank=True, null=True)
     primary_ip = models.CharField(max_length=11, blank=True, null=True)
     secondary_ip = models.CharField(max_length=11, blank=True, null=True)
+
+    def storage_image(self):
+        storage_image = f'IBM.2107-{self.serial_number[:-1] + "1"}'
+        return storage_image
     
     def __str__(self):
         return f'{self.project}: {self.name}' 
@@ -98,7 +102,7 @@ class Alias(models.Model):
     
     class Meta:
         ordering = ['name']
-        unique_together = ['fabric', 'wwpn']
+        # unique_together = ['fabric', 'wwpn']
     
     def __str__(self):
         return f'{self.fabric.project}: {self.name}'

@@ -56,7 +56,7 @@ def fabrics_data(request):
 def storage_data(request):
     config = Config.objects.first()
     storages = Storage.objects.filter(project=config.project)
-    data = [{'id': storage.id, 'name': storage.name, 'storage_type': storage.storage_type, 'storage_image': storage.storage_image, 'system_id': storage.system_id, 'location': storage.location} for storage in storages]
+    data = [{'id': storage.id, 'name': storage.name, 'storage_type': storage.storage_type, 'system_id': storage.system_id, 'wwnn': storage.wwnn, 'location': storage.location} for storage in storages]
     return JsonResponse(data, safe=False)
 
 
@@ -199,7 +199,7 @@ def storage(request):
                     model=row['model'],
                     serial_number=row['serial_number'],
                     firmware_level=row['firmware_level'],
-                    storage_image=row['storage_image'],
+                    wwnn=row['wwnn'],
                     system_id=row['system_id'],
                     primary_ip=row['primary_ip']
                 )
@@ -213,7 +213,7 @@ def storage(request):
                     model=row['model'],
                     serial_number=row['serial_number'],
                     firmware_level=row['firmware_level'],
-                    storage_image=row['storage_image'],
+                    wwnn=row['wwnn'],
                     system_id=row['system_id'],
                     primary_ip=row['primary_ip']
                 )
@@ -225,18 +225,47 @@ def storage(request):
         storage_to_delete.delete()
         return JsonResponse({'status': 'success'})
     else:
-        storage = Storage.objects.values('id','name','storage_type','location', 'machine_type', 'model', 'serial_number', 'firmware_level', 'storage_image', 'system_id', 'primary_ip').filter(project=config.project)
-        for i in storage:
-            for field_name, field_value in i.items():
-                if isinstance(field_value, bool):
-                    i[field_name] = str(field_value).lower()
-                    # Convert Python None to JSON null
-                if field_value is None:
-                        i[field_name] = ''          
-        context = {'storage': list(storage),
-                   'heading': 'Storage',
-                   'pageview': 'Inventory'}  
+        # Get the storage instances filtered by the project
+        storage_instances = Storage.objects.filter(project=config.project)
+
+        # Initialize an empty list to hold the storage data
+        storage_data = []
+
+        # Call the storage_image method for each instance to get the storage image
+        for storage_instance in storage_instances:
+            storage_instance.storage_image = storage_instance.storage_image()  # Call the method
+            
+            # Append the storage instance data to the storage_data list
+            storage_data.append({
+                'id': storage_instance.id,
+                'name': storage_instance.name,
+                'storage_type': storage_instance.storage_type,
+                'location': storage_instance.location,
+                'machine_type': storage_instance.machine_type,
+                'model': storage_instance.model,
+                'serial_number': storage_instance.serial_number,
+                'wwnn': storage_instance.wwnn,
+                'firmware_level': storage_instance.firmware_level,
+                'system_id': storage_instance.system_id,
+                'primary_ip': storage_instance.primary_ip,
+                'storage_image': storage_instance.storage_image  # Include the storage image
+            })
+
+        # Convert Python None to JSON null
+        for storage_item in storage_data:
+            for key, value in storage_item.items():
+                if value is None:
+                    storage_item[key] = ''
+
+        # Pass the data to the template
+        context = {
+            'storage': storage_data,
+            'heading': 'Storage',
+            'pageview': 'Inventory'
+        }
+
         return render(request, 'storage.html', context)
+
 
 @csrf_exempt
 def ds_volumegroups(request):
@@ -311,40 +340,58 @@ def ds_volume_ranges(request):
             for i in row:
                 if i != 'id' and row[i] == None:
                     row[i] = 'False'
-                if row['id']:  # If there's an ID, update the record
-                    volume_range = VolumeRange.objects.get(id=row['id'])
-                    field_list = ['site',
-                                'lpar',
-                                'use',
-                                # 'source_ds8k',
-                                'source_pool',
-                                'source_start',
-                                'source_end',
-                                # 'target_ds8k',
-                                'target_start',
-                                'target_end',
-                                'create']
-                    for field in field_list:
-                        setattr(volume_range, field, row[field])
-                    volume_range.save()
-                else:  # If there's no ID, create a new record
-                    volume_range = VolumeRange()
-                    setattr(volume_range, 'project', config.project)
-                    field_list = ['site',
-                                'lpar',
-                                'use',
-                                # 'source_ds8k',
-                                'source_pool',
-                                'source_start',
-                                'source_end',
-                                # 'target_ds8k',
-                                'target_start',
-                                'target_end',
-                                'create']
-                    for field in field_list:
-                        setattr(volume_range, field, row[field])
-                    volume_range.save()
+            if row['source_ds8k']:
+                storage_name = row['source_ds8k']
+                try:
+                    source_ds8k = Storage.objects.get(name=storage_name, project=config.project)
+                except ObjectDoesNotExist:
+                    source_ds8k = None  # or handle missing storage as needed
+            if row['target_ds8k']:
+                storage_name = row['target_ds8k']
+                try:
+                    target_ds8k = Storage.objects.get(name=storage_name, project=config.project)
+                except ObjectDoesNotExist:
+                    target_ds8k = None  # or handle missing storage as needed
+            if row['id']:  # If there's an ID, update the record
+                volume_range = VolumeRange.objects.get(id=row['id'])
+                field_list = ['site',
+                            'lpar',
+                            'use',
+                            'source_pool',
+                            'source_start',
+                            'source_end',
+                            'target_start',
+                            'target_end',
+                            'create']
+                for field in field_list:
+                    setattr(volume_range, field, row[field])
+                volume_range.source_ds8k=source_ds8k
+                volume_range.target_ds8k=target_ds8k
 
+                volume_range.save()
+            else:  # If there's no ID, create a new record
+                volume_range = VolumeRange()
+                setattr(volume_range, 'project', config.project)
+                field_list = ['site',
+                            'lpar',
+                            'use',
+                            'source_pool',
+                            'source_start',
+                            'source_end',
+                            'target_start',
+                            'target_end',
+                            'create']
+                for field in field_list:
+                    setattr(volume_range, field, row[field])
+                volume_range.source_ds8k=source_ds8k
+                volume_range.target_ds8k=target_ds8k
+                print('saving')
+                volume_range.save()
+                data[data.index(row)]['id'] = volume_range.id 
+        ranges_non_active_customer = VolumeRange.objects.exclude(project=config.project)
+        ranges_to_keep = [row['id'] for row in data if row['id']]
+        ranges_to_delete = VolumeRange.objects.exclude(Q(id__in=ranges_to_keep) | Q(id__in=ranges_non_active_customer))
+        ranges_to_delete.delete()
         return JsonResponse({'status': 'success'})
     else:
         config = Config.objects.first()
