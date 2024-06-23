@@ -75,7 +75,7 @@ def host_data(request):
     hosts = Host.objects.filter(project=config.project)
     
     # Serialize the ports for each host
-    data = [{'id': host.id, 'name': host.name} for host in hosts]
+    data = [{'id': host.id, 'name': host.name, 'storage':host.storage.name} for host in hosts]
     return JsonResponse(data, safe=False)
 
 
@@ -820,7 +820,8 @@ def hosts(request):
             host_dict = {
                 'id': host.id,
                 'name': host.name,
-                'wwpns': []
+                'wwpns': [],
+                'storage': host.storage.name,
             }
             # Extract alias data for the host
             for alias in host.alias_host.all():
@@ -829,6 +830,7 @@ def hosts(request):
             host_data.append(host_dict)
 
         # Now, you can use the `host_data` list in your context
+        print(host_data)
         context = {
             'hosts': host_data,
             'heading': 'Hosts',

@@ -27,7 +27,7 @@ $(document).ready(function () {
         licenseKey: 'non-commercial-and-evaluation',
         data: data,
         minRows: 1,
-        minCols: 3,
+        minCols: 4,
         rowHeaders: false,
         width: '100%',
         height: '100%',
@@ -36,7 +36,7 @@ $(document).ready(function () {
 
         // when selection reaches the edge of the grid's viewport, scroll the viewport
         dragToScroll: true,
-        colHeaders: ["ID", "Host Name", "WWPNs"],
+        colHeaders: ["ID", "Host Name", "Storage", "WWPNs"],
         contextMenu: ['row_above', 'row_below', 'remove_row', '---------', 'undo', 'redo'],  // Custom context menu options
         minSpareRows: 1,  // Always leave one spare row at the end
         // Enable column resizing
@@ -50,6 +50,7 @@ $(document).ready(function () {
         columns: [
             { data: 'id', readOnly: true },
             { data: 'name' },
+            { data: 'storage' },
             { data: 'wwpns', readOnly: true },
         ],
         filters: true,

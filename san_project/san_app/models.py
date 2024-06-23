@@ -74,6 +74,7 @@ class Storage(models.Model):
 class Host(models.Model):
     project = models.ForeignKey(Project, related_name='host_project', on_delete=models.CASCADE)
     name = models.CharField(max_length=200)
+    storage = models.ForeignKey(Storage, related_name="owning_storage", on_delete=models.CASCADE, null=True,blank=True)
 
     class Meta:
         unique_together = ['project', 'name']
