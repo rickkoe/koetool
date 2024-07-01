@@ -75,7 +75,14 @@ def host_data(request):
     hosts = Host.objects.filter(project=config.project)
     
     # Serialize the ports for each host
-    data = [{'id': host.id, 'name': host.name, 'storage':host.storage.name} for host in hosts]
+    data = [
+        {
+            'id': host.id,
+            'name': host.name,
+            'storage': host.storage.name if host.storage is not None else None
+        }
+        for host in hosts
+    ]
     return JsonResponse(data, safe=False)
 
 

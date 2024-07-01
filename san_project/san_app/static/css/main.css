@@ -1,3 +1,21 @@
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#aliasTableContainer {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 60px); /* Adjust this offset based on your actual layout */
+  overflow: hidden;
+}
+
+#aliasTable {
+  flex-grow: 1;
+  overflow: auto;
+}
+
 
 .table-container {
   height: 100%;
