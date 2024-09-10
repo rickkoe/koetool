@@ -523,15 +523,12 @@ def zones(request):
             # Update existing records and add new ones
         for row in data:
             for field_name, field_value in row.items():
-                if field_value == "true":
-                    row[field_name] = True
-                elif field_value == "TRUE":
-                    row[field_name] = True
-                elif field_value == "false":
-                    row[field_name] = False
-                elif field_value == "FALSE":
-                    row[field_name] = False
-                elif field_name == 'exists' and field_value == None:
+                if isinstance(field_value, str):
+                    if field_value.lower() == "true":
+                        row[field_name] = True
+                    elif field_value.lower() == "false":
+                        row[field_name] = False
+                if field_name == 'exists' and field_value is None:
                     row[field_name] = False
             for i in row:
                 if i != 'id' and row[i] == None:

@@ -103,7 +103,10 @@ class Alias(models.Model):
     
     class Meta:
         ordering = ['name']
-        # unique_together = ['fabric', 'wwpn']
+        unique_together = [
+            ('fabric', 'wwpn'),
+            ('fabric', 'name'),
+        ]
     
     def __str__(self):
         return f'{self.fabric.project}: {self.name}'
