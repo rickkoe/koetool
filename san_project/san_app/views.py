@@ -149,8 +149,8 @@ def aliases(request):
                     wwpn=row['wwpn'],
                     use=row['use'],
                     fabric=fabric,
-                    storage=storage,
-                    host=host,
+                    # storage=storage,
+                    # host=host,
                     create=row['create'],
                     include_in_zoning=row['include_in_zoning']
                 )
@@ -160,8 +160,8 @@ def aliases(request):
                     wwpn=row['wwpn'],
                     use=row['use'],
                     fabric=fabric,
-                    storage=storage,
-                    host=host,
+                    # storage=storage,
+                    # host=host,
                     create=row['create'],
                     include_in_zoning=row['include_in_zoning'])
                 san_alias.save()
@@ -525,7 +525,11 @@ def zones(request):
             for field_name, field_value in row.items():
                 if field_value == "true":
                     row[field_name] = True
+                elif field_value == "TRUE":
+                    row[field_name] = True
                 elif field_value == "false":
+                    row[field_name] = False
+                elif field_value == "FALSE":
                     row[field_name] = False
                 elif field_name == 'exists' and field_value == None:
                     row[field_name] = False
@@ -730,7 +734,15 @@ def create_zone_command_dict():
                 initiators = ';'.join([alias.name for alias in zone_members if alias.use == 'init'])
                 targets = ';'.join([alias.name for alias in zone_members if alias.use == 'target'])
                 if zone.exists == True:
-                    zone_command_dict[key].append(f'zoneadd --peerzone "{zone.name}" -principal "{targets}" -members "{initiators}"')
+                    if targets: 
+                        principal = f' -principal "{targets}"'
+                    else:
+                        principal = ''
+                    if initiators:
+                        members = f' -members "{initiators}"'
+                    else:
+                        members = ''
+                    zone_command_dict[key].append(f'zoneadd --peerzone "{zone.name}"{principal}{members}')
                 elif zone.exists == False:
                     zone_command_dict[key].append(f'zonecreate --peerzone "{zone.name}" -principal "{targets}" -members "{initiators}"')
             if len(zoneset_command_dict[key]) == 2 and zone.fabric.exists == False and zone.exists == False:

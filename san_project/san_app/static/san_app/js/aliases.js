@@ -220,15 +220,14 @@ $(document).ready(function () {
 
         $.ajax({
             type: 'POST',
-            url: '/save_aliases/',
-            data: JSON.stringify(data),
-            contentType: 'application/json',
-            success: function (response) {
-                alert('Data saved successfully!');
+            url: '',
+            data: {
+                'data': JSON.stringify(data),
+                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
             },
-            error: function (xhr, status, error) {
-                console.error('Error saving data:', error);
-            }
+            success: function() {
+                location.reload();
+            },
         });
     });
 });
