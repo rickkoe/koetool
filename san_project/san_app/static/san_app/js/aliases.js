@@ -62,6 +62,7 @@ function initializeHandsontable(container, data) {
         rowHeaders: false,
         width: '100%',
         height: '100%',
+        stretchH: 'all',
         columnSorting: true,
         dragToScroll: true,
         colHeaders: ["ID", "Alias Name", "wwpn", "Use", "Fabric", "Storage", "Host", "Create", "Zone"],
